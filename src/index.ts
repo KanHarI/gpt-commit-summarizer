@@ -42,7 +42,7 @@ async function run (): Promise<void> {
 
     // Add the comments from the current page to the list of comments
     // @ts-expect-error
-    comments.push(...Array.from(response))
+    comments.push(...Array.from(response.data))
 
     // If there are no more pages of comments, break out of the loop
     if ((response.headers.link?.includes('next')) === false) {
