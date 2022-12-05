@@ -102,8 +102,7 @@ async function run (): Promise<void> {
       pull_number: number,
       commit_id: commit.sha,
       path: diff.filename,
-      line: lineIndex,
-      diff_hunk: diffHunk
+      line: lineIndex
     })
   }
 }
