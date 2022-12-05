@@ -81,12 +81,15 @@ async function run (): Promise<void> {
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
       .map((file) => file.filename)
       .join(', ')}`
-    await octokit.issues.createComment({
+    await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
       issue_number: number,
       body: comment,
-      in_reply_to: diff.blob_url
+      pull_number: number,
+      commit_id: commit.sha,
+      path: diff.filename,
+      line: 0
     })
 
     // Add the SHA hash of the commit to the set of commented commits
