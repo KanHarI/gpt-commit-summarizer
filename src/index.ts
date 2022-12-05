@@ -1,7 +1,9 @@
 import { Octokit } from '@octokit/rest'
 import { context } from '@actions/github'
 
-const octokit = new Octokit()
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN
+})
 
 async function run (): Promise<void> {
   try {
