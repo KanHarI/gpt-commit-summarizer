@@ -1,0 +1,11 @@
+name: 'Commit Summary'
+description: 'Write a comment about every commit in a pull request'
+inputs:
+  repository:
+    description: 'The repository that the pull request is being opened in'
+    required: true
+    default: ''
+  token:
+    description: 'The GitHub token to use for authenticating the action'
+    required: true
+    default: ''
