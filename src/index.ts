@@ -28,6 +28,13 @@ async function run (): Promise<void> {
     issue_number: number
   })
 
+  // Get the list of diffs for the pull request
+  const diffs = await octokit.pulls.listFiles({
+    owner: repository.owner.login,
+    repo: repository.name,
+    pull_number: number
+  })
+
   // For each commit, get the list of files that were modified
   const commits = await octokit.pulls.listCommits({
     owner: repository.owner.login,
@@ -42,7 +49,7 @@ async function run (): Promise<void> {
     }
 
     // Check if a comment for this commit already exists
-    const expectedComment = `Files modified in commit ${commit.sha}: `
+    const expectedComment = `GPT summary of ${commit.sha}: `
     const regex = new RegExp(`^${expectedComment}.*$`)
     const existingComment = comments.data.find((comment) => regex.test(comment.body ?? ''))
 
@@ -62,15 +69,24 @@ async function run (): Promise<void> {
       throw new Error('Files undefined')
     }
 
+    // Find the first diff that corresponds to one of the modified files in the commit
+    const diff = diffs.data.find((file) => commitObject.data.files?.some((commitFile) => commitFile.filename === file.filename))
+
+    // If no diff is found, skip this commit
+    if (diff === undefined) {
+      continue
+    }
+
     // Create a comment on the pull request with the names of the files that were modified in the commit
-    const comment = `Files modified in commit ${commit.sha}: ${commitObject.data.files
+    const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
       .map((file) => file.filename)
       .join(', ')}`
     await octokit.issues.createComment({
       owner: repository.owner.login,
       repo: repository.name,
       issue_number: number,
-      body: comment
+      body: comment,
+      in_reply_to: diff.blob_url
     })
 
     // Add the SHA hash of the commit to the set of commented commits
