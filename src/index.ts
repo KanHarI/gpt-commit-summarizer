@@ -46,9 +46,12 @@ async function run (): Promise<void> {
         body: comment
       })
     }
+
+    throw new Error('test')
   } catch (error) {
     // Handle any errors that may occur
     console.error(error)
+    throw error
   }
 }
 
