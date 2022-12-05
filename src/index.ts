@@ -81,6 +81,17 @@ async function run (): Promise<void> {
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
       .map((file) => file.filename)
       .join(', ')}`
+
+    // Find the diff hunk for the line where you want to post the comment
+    const diffLines = diff.patch?.split('\n')
+
+    if (diffLines === undefined) {
+      continue
+    }
+
+    const lineIndex = diffLines.findIndex((line) => line.startsWith('+'))
+    const diffHunk = diffLines.slice(lineIndex - 5, lineIndex + 5).join('\n')
+
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
@@ -88,11 +99,9 @@ async function run (): Promise<void> {
       pull_number: number,
       commit_id: commit.sha,
       path: diff.filename,
-      line: 0
+      line: lineIndex,
+      diff_hunk: diffHunk
     })
-
-    // Add the SHA hash of the commit to the set of commented commits
-    commentedCommits.add(commit.sha)
   }
 }
 
