@@ -5,6 +5,9 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
 
+// Keep track of the SHA hashes for which we have already added a comment
+const commentedCommits = new Set<string>()
+
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
   const {
@@ -25,19 +28,23 @@ async function run (): Promise<void> {
     issue_number: number
   })
 
-  // Get the list of commits for the pull request
+  // For each commit, get the list of files that were modified
   const commits = await octokit.pulls.listCommits({
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: number
   })
 
-  // For each commit, get the list of files that were modified
   for (const commit of commits.data) {
-    // Check whether a comment already exists for the commit
-    const existingComment = comments.data.find(
-      (comment) => comment.body?.startsWith(`Files modified in commit ${commit.sha}:`)
-    )
+    // Skip this commit if we have already added a comment for it
+    if (commentedCommits.has(commit.sha)) {
+      continue
+    }
+
+    // Check if a comment for this commit already exists
+    const expectedComment = `Files modified in commit ${commit.sha}: `
+    const regex = new RegExp(`^${expectedComment}.*$`)
+    const existingComment = comments.data.find((comment) => regex.test(comment.body ?? ''))
 
     // If a comment already exists, skip this commit
     if (existingComment !== undefined) {
@@ -65,6 +72,9 @@ async function run (): Promise<void> {
       issue_number: number,
       body: comment
     })
+
+    // Add the SHA hash of the commit to the set of commented commits
+    commentedCommits.add(commit.sha)
   }
 }
 
