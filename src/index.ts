@@ -27,17 +27,13 @@ async function run (): Promise<void> {
 
   // For each commit, get the list of files that were modified
   for (const commit of commits.data) {
-    const files = (await octokit.pulls.listFiles({
-      owner: repository.owner.login,
-      repo: repository.name,
-      pull_number: number,
-      commit_sha: commit.sha
-    })).data
+    // Filter the list of files to only include files modified in this commit
+    const files = commit.files?.filter(file => file.status !== 'removed') ?? []
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `Files modified in commit ${commit.sha}: ${files
-        .map((file) => file.filename)
-        .join(', ')}`
+      .map((file) => file.filename)
+      .join(', ')}`
     await octokit.issues.createComment({
       owner: repository.owner.login,
       repo: repository.name,
@@ -45,8 +41,6 @@ async function run (): Promise<void> {
       body: comment
     })
   }
-
-  throw new Error('test')
 }
 
 run().catch(error => {
