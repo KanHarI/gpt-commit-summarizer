@@ -18,6 +18,13 @@ async function run (): Promise<void> {
     throw new Error('Repository undefined')
   }
 
+  // Get the list of existing comments for the pull request
+  const comments = await octokit.issues.listComments({
+    owner: repository.owner.login,
+    repo: repository.name,
+    issue_number: number
+  })
+
   // Get the list of commits for the pull request
   const commits = await octokit.pulls.listCommits({
     owner: repository.owner.login,
@@ -27,6 +34,16 @@ async function run (): Promise<void> {
 
   // For each commit, get the list of files that were modified
   for (const commit of commits.data) {
+    // Check whether a comment already exists for the commit
+    const existingComment = comments.data.find(
+      (comment) => comment.body?.startsWith(`Files modified in commit ${commit.sha}:`)
+    )
+
+    // If a comment already exists, skip this commit
+    if (existingComment !== undefined) {
+      continue
+    }
+
     // Get the commit object with the list of files that were modified
     const commitObject = await octokit.repos.getCommit({
       owner: repository.owner.login,
