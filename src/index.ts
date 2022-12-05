@@ -27,6 +27,8 @@ async function run (): Promise<void> {
 
   // For each commit, get the list of files that were modified
   for (const commit of commits.data) {
+    console.log(commit.sha)
+    console.log(commit.files)
     // Filter the list of files to only include files modified in this commit
     const files = commit.files?.filter(file => file.status !== 'removed') ?? []
 
