@@ -9,3 +9,6 @@ inputs:
     description: 'The GitHub token to use for authenticating the action'
     required: true
     default: ''
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
