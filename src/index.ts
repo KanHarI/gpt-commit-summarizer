@@ -5,6 +5,34 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
 
+async function paginate (apiMethod: any, params: any, callback: any): Promise<void> {
+  let page = 1
+  while (true) {
+    // Get the current page of results
+    const response = await apiMethod({
+      ...params,
+      per_page: 100,
+      page
+    })
+
+    // If there is no response, break out of the loop
+    if (response === undefined) {
+      break
+    }
+
+    // Call the callback function with the current page of results
+    callback(response.data)
+
+    // If there are no more pages of results, break out of the loop
+    if ((response.headers.link?.includes('next')) === false) {
+      break
+    }
+
+    // Increment the page number
+    page++
+  }
+}
+
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
   const {
@@ -18,70 +46,19 @@ async function run (): Promise<void> {
     throw new Error('Repository undefined')
   }
 
-  // Set the number of comments to return per page
-  const perPage = 100
-
-  // Get the list of existing comments for the pull request
   const comments: Awaited<ReturnType<typeof octokit.issues.listComments>>['data'] = []
-  let page = 1
-  while (true) {
-    // Get the current page of comments
-    const response = await octokit.issues.listComments({
-      owner: repository.owner.login,
-      repo: repository.name,
-      issue_number: number,
-      per_page: perPage,
-      page
-    })
+  await paginate(octokit.issues.listComments, {
+    owner: repository.owner.login,
+    repo: repository.name,
+    issue_number: number
+  }, (data: any) => comments.push(...data))
 
-    if (response === undefined) {
-      break
-    }
-
-    // Add the comments from the current page to the list of comments
-    comments.push(...response.data)
-
-    // If there are no more pages of comments, break out of the loop
-    if ((response.headers.link?.includes('next')) === false) {
-      break
-    }
-
-    // Increment the page number
-    page++
-  }
-
-  console.log(comments)
-
-  // Get the list of diffs for the pull request
   const diffs: Awaited<ReturnType<typeof octokit.pulls.listFiles>>['data'] = []
-  page = 1
-  while (true) {
-    // Get the current page of diffs
-    const response = await octokit.pulls.listFiles({
-      owner: repository.owner.login,
-      repo: repository.name,
-      pull_number: number,
-      per_page: perPage,
-      page
-    })
-
-    if (response === undefined) {
-      break
-    }
-
-    // Add the diffs from the current page to the list of diffs
-    diffs.push(...response.data)
-
-    // If there are no more pages of diffs, break out of the loop
-    if ((response.headers.link?.includes('next')) === false) {
-      break
-    }
-
-    // Increment the page number
-    page++
-  }
-
-  console.log(diffs)
+  await paginate(octokit.pulls.listFiles, {
+    owner: repository.owner.login,
+    repo: repository.name,
+    pull_number: number
+  }, (data: any) => diffs.push(...data))
 
   // For each commit, get the list of files that were modified
   const commits = await octokit.pulls.listCommits({
