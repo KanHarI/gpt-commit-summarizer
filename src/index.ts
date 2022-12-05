@@ -78,7 +78,8 @@ async function run (): Promise<void> {
       owner: repository.owner.login,
       repo: repository.name,
       issue_number: number,
-      body: comment
+      body: comment,
+      commit_id: commit.sha
     })
   }
 }
