@@ -5,9 +5,6 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
 
-// Keep track of the SHA hashes for which we have already added a comment
-const commentedCommits = new Set<string>()
-
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
   const {
@@ -43,11 +40,6 @@ async function run (): Promise<void> {
   })
 
   for (const commit of commits.data) {
-    // Skip this commit if we have already added a comment for it
-    if (commentedCommits.has(commit.sha)) {
-      continue
-    }
-
     // Check if a comment for this commit already exists
     const expectedComment = `GPT summary of ${commit.sha}: `
     const regex = new RegExp(`^${expectedComment}.*$`)
@@ -82,27 +74,11 @@ async function run (): Promise<void> {
       .map((file) => file.filename)
       .join(', ')}`
 
-    // Find the diff hunk for the line where you want to post the comment
-    const diffLines = diff.patch?.split('\n')
-
-    if (diffLines === undefined) {
-      continue
-    }
-
-    const lineIndex = diffLines.findIndex((line) => line.startsWith('+'))
-    const diffHunk = diffLines.slice(lineIndex - 5, lineIndex + 5).join('\n')
-
-    console.log(lineIndex)
-    console.log(diffHunk)
-
-    await octokit.pulls.createReviewComment({
+    await octokit.issues.createComment({
       owner: repository.owner.login,
       repo: repository.name,
-      body: comment,
-      pull_number: number,
-      commit_id: commit.sha,
-      path: diff.filename,
-      line: lineIndex
+      issue_number: number,
+      body: comment
     })
   }
 }
