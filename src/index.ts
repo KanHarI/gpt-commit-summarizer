@@ -14,14 +14,17 @@ async function run (): Promise<void> {
     const repository = context.payload.repository
 
     if (repository === undefined) {
-      throw 'Repository undefined'
+      throw new Error('Repository undefined')
     }
 
     const { owner, repo } = repository
 
     if (owner === undefined) {
-      throw 'Owner undefined'
+      throw new Error('Owner undefined')
     }
+
+    console.log(repository)
+    console.log(repo)
 
     // Get the list of commits for the pull request
     const commits = await octokit.pulls.listCommits({
