@@ -7,17 +7,25 @@ async function run (): Promise<void> {
   try {
     // Get the pull request number and repository owner and name from the context object
     const {
-      number,
-      repository
+      number
     } = (context.payload.pull_request as {
       number: number
-      repository: { owner: string, repo: string }
     })
+    const repository = context.payload.repository
+
+    if (repository === undefined) {
+      throw 'Repository undefined'
+    }
+
     const { owner, repo } = repository
+
+    if (owner === undefined) {
+      throw 'Owner undefined'
+    }
 
     // Get the list of commits for the pull request
     const commits = await octokit.pulls.listCommits({
-      owner,
+      owner: owner.name as string,
       repo,
       pull_number: number
     })
@@ -25,7 +33,7 @@ async function run (): Promise<void> {
     // For each commit, get the list of files that were modified
     for (const commit of commits.data) {
       const files = (await octokit.pulls.listFiles({
-        owner,
+        owner: owner.name as string,
         repo,
         pull_number: number,
         commit_sha: commit.sha
@@ -36,7 +44,7 @@ async function run (): Promise<void> {
         .map((file) => file.filename)
         .join(', ')}`
       await octokit.issues.createComment({
-        owner,
+        owner: owner.name as string,
         repo,
         issue_number: number,
         body: comment
@@ -48,4 +56,7 @@ async function run (): Promise<void> {
   }
 }
 
-run()
+run().catch(error => {
+  console.error(error)
+  process.exit(1)
+})
