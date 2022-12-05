@@ -92,6 +92,9 @@ async function run (): Promise<void> {
     const lineIndex = diffLines.findIndex((line) => line.startsWith('+'))
     const diffHunk = diffLines.slice(lineIndex - 5, lineIndex + 5).join('\n')
 
+    console.log(lineIndex)
+    console.log(diffHunk)
+
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
