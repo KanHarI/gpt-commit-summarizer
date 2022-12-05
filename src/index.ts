@@ -26,7 +26,7 @@ async function run (): Promise<void> {
     // Get the list of commits for the pull request
     const commits = await octokit.pulls.listCommits({
       owner: owner.name as string,
-      repo,
+      repo: repo.name as string,
       pull_number: number
     })
 
@@ -34,7 +34,7 @@ async function run (): Promise<void> {
     for (const commit of commits.data) {
       const files = (await octokit.pulls.listFiles({
         owner: owner.name as string,
-        repo,
+        repo: repo.name as string,
         pull_number: number,
         commit_sha: commit.sha
       })).data
@@ -45,7 +45,7 @@ async function run (): Promise<void> {
         .join(', ')}`
       await octokit.issues.createComment({
         owner: owner.name as string,
-        repo,
+        repo: repo.name as string,
         issue_number: number,
         body: comment
       })
