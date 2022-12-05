@@ -43,4 +43,4 @@ async function run (): Promise<void> {
   }
 }
 
-void run()
+console.log('SANITY')
