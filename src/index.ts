@@ -17,27 +17,18 @@ async function run (): Promise<void> {
       throw new Error('Repository undefined')
     }
 
-    const { owner, repo } = repository
-
-    if (owner === undefined) {
-      throw new Error('Owner undefined')
-    }
-
-    console.log(repository)
-    console.log(repo)
-
     // Get the list of commits for the pull request
     const commits = await octokit.pulls.listCommits({
-      owner: owner.name as string,
-      repo: repo.name as string,
+      owner: repository.owner.login,
+      repo: repository.name,
       pull_number: number
     })
 
     // For each commit, get the list of files that were modified
     for (const commit of commits.data) {
       const files = (await octokit.pulls.listFiles({
-        owner: owner.name as string,
-        repo: repo.name as string,
+        owner: repository.owner.login,
+        repo: repository.name,
         pull_number: number,
         commit_sha: commit.sha
       })).data
@@ -47,8 +38,8 @@ async function run (): Promise<void> {
         .map((file) => file.filename)
         .join(', ')}`
       await octokit.issues.createComment({
-        owner: owner.name as string,
-        repo: repo.name as string,
+        owner: repository.owner.login,
+        repo: repository.name,
         issue_number: number,
         body: comment
       })
