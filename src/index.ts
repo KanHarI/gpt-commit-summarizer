@@ -18,12 +18,38 @@ async function run (): Promise<void> {
     throw new Error('Repository undefined')
   }
 
+  // Set the number of comments to return per page
+  const perPage = 100
+
   // Get the list of existing comments for the pull request
-  const comments = await octokit.issues.listComments({
-    owner: repository.owner.login,
-    repo: repository.name,
-    issue_number: number
-  })
+  const comments: Awaited<ReturnType<typeof octokit.issues.listComments>> = [] as unknown as Awaited<ReturnType<typeof octokit.issues.listComments>>
+  let page = 1
+  while (true) {
+    // Get the current page of comments
+    const response = await octokit.issues.listComments({
+      owner: repository.owner.login,
+      repo: repository.name,
+      issue_number: number,
+      per_page: perPage,
+      page
+    })
+
+    if (response === undefined) {
+      break
+    }
+
+    // Add the comments from the current page to the list of comments
+    // @ts-expect-error
+    comments.push(...response)
+
+    // If there are no more pages of comments, break out of the loop
+    if ((response.headers.link?.includes('next')) === false) {
+      break
+    }
+
+    // Increment the page number
+    page++
+  }
 
   console.log(comments)
 
@@ -63,6 +89,7 @@ async function run (): Promise<void> {
       throw new Error('Files undefined')
     }
 
+    // Find the first diff that corresponds to one of the modified files in the commit
     // Find the first diff that corresponds to one of the modified files in the commit
     const diff = diffs.data.find((file) => commitObject.data.files?.some((commitFile) => commitFile.filename === file.filename))
 
