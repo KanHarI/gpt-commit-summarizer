@@ -15,7 +15,7 @@
     "typescript": "*"
   },
   "scripts": {
-    "build": "ncc build ./src/index.ts -o lib --minify",
+    "build": "ncc build ./src/index.ts -o lib",
     "lint": "eslint src/**/*.ts"
   },
   "dependencies": {
