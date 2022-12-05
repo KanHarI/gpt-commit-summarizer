@@ -73,7 +73,7 @@ async function run (): Promise<void> {
     // Check if a comment for this commit already exists
     const expectedComment = `GPT summary of ${commit.sha}: `
     const regex = new RegExp(`^${expectedComment}.*$`)
-    const existingComment = comments.data.find((comment) => regex.test(comment.body ?? ''))
+    const existingComment = (comments as unknown as typeof comments.data).find((comment) => regex.test(comment.body ?? ''))
 
     // If a comment already exists, skip this commit
     if (existingComment !== undefined) {
