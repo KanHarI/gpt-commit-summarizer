@@ -5,8 +5,6 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
 
-console.log(process.env.GITHUB_TOKEN);
-
 async function run (): Promise<void> {
   try {
     // Get the pull request number and repository owner and name from the context object
