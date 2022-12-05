@@ -25,6 +25,8 @@ async function run (): Promise<void> {
     issue_number: number
   })
 
+  console.log(comments)
+
   // Get the list of diffs for the pull request
   const diffs = await octokit.pulls.listFiles({
     owner: repository.owner.login,
