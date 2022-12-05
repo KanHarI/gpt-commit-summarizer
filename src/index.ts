@@ -84,7 +84,6 @@ async function run (): Promise<void> {
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
-      issue_number: number,
       body: comment,
       pull_number: number,
       commit_id: commit.sha,
