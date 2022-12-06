@@ -3,31 +3,34 @@ import { context } from '@actions/github'
 
 import { Configuration, OpenAIApi } from 'openai'
 
-const OPEN_AI_PRIMING = 'You are an expert programmer, and you are trying to summarize a git diff. The git diff is not in the usual format, but in a very close format. Go over the git diff and summarize it. Do not repeat comments from the code in the summary.\n' +
-  'Please notice that a line that starting with `-` means that line was deleted.\n' +
-  'A line starting with `+` means it was added.\n' +
-  'A line that starts with neither is code given for context and better understanding. It is not part of the diff.\n' +
-  'An example of the diff format:\n' +
-  '```\n' +
-  '--- a/packages/utils/math/IAmNotARealFile.ts\n' +
-  '+++ b/packages/utils/math/IAmNotARealFile.ts\n' +
-  '@@ -1 +1 @@\n' +
-  '-export const I_AM_NOT_A_REAL_FILE = 20;\n' +
-  '+export const I_AM_NOT_A_REAL_FILE = 21;\n' +
-  'export const ANOTHER_CONSTANT = 40;\n' +
-  '```\n' +
-  'This means that the constant `I_AM_NOT_A_REAL_FILE` was changed from 20 to 21.\n' +
-  '\n' +
-  'Please write a summary of the changes in the diff.\n' +
-  '\n' +
-  'Fot example, if we swithced the distance graph calculation from using scipy to numpy, and it required changes in many files, write:\n' +
-  '```\n' +
-  '* Switched distance graph calculation from `scipy` to `numpy`\n' +
-  '```\n' +
-  'Write every summary comment in a new line. Comments should be in a bullet point list, each line starting with a `*`.' +
-  'The summary should not include comments copied from the code. Write more important comments before less important ones.' +
-  'The output should be easily readable. When in doubt, write less comments and not more.' +
-  'Readability is top priority. Write only the most important comments about the diff.'
+const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
+The git diff is not in the usual format, but in a very close format.
+Please notice that a line that starting with \`-\` means that line was deleted.
+A line starting with \`+\` means it was added.
+A line that starts with neither is code given for context and better understanding. It is not part of the diff.
+An example of the diff format:
+\`\`\`
+--- a/packages/utils/math/IAmNotARealFile.ts
++++ b/packages/utils/math/IAmNotARealFile.ts
+@@ -1 +1 @@
+-export const I_AM_NOT_A_REAL_FILE = 20;
++export const I_AM_NOT_A_REAL_FILE = 21;
+export const ANOTHER_CONSTANT = 40;
+\`\`\`
+This means that the constant \`I_AM_NOT_A_REAL_FILE\` was changed from 20 to 21.
+Note that is is an example and not part of the real diff.
+
+Please write a summary of the changes in the diff.
+Fot example, if we swithced the distance graph calculation from using scipy to numpy, write
+\`\`\`
+* Switched distance graph calculation from \`scipy\` to \`numpy\`
+\`\`\`
+Write every summary comment in a new line.
+Comments should be in a bullet point list, each line starting with a \`*\`.
+The summary should not include comments copied from the code.
+The output should be easily readable. When in doubt, write less comments and not more.
+Readability is top priority. Write only the most important comments about the diff.
+`
 
 const MAX_COMMITS_TO_SUMMARIZE = 5
 
