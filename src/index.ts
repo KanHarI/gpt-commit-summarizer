@@ -24,12 +24,6 @@ async function run (): Promise<void> {
     issue_number: number
   })
 
-  const diffs = await octokit.paginate(octokit.pulls.listFiles, {
-    owner: repository.owner.login,
-    repo: repository.name,
-    pull_number: number
-  })
-
   // For each commit, get the list of files that were modified
   const commits = await octokit.paginate(octokit.pulls.listCommits, {
     owner: repository.owner.login,
@@ -55,18 +49,22 @@ async function run (): Promise<void> {
       ref: commit.sha
     })
 
-    console.log('commit', commitObject.data.commit)
+    const parent = commitObject.data.parents[0].sha
+
+    const comparison = await octokit.repos.compareCommits({
+      owner: repository.owner.login,
+      repo: repository.name,
+      base: parent,
+      head: commit.sha
+    })
+
+    console.log('comparison.data')
+    console.log(comparison.data)
+    console.log('comparison.url')
+    console.log(comparison.url)
 
     if (commitObject.data.files === undefined) {
       throw new Error('Files undefined')
-    }
-
-    // Find the first diff that corresponds to one of the modified files in the commit
-    const diff = diffs.find((file) => commitObject.data.files?.some((commitFile) => commitFile.filename === file.filename))
-
-    // If no diff is found, skip this commit
-    if (diff === undefined) {
-      continue
     }
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
