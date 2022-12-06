@@ -109,9 +109,7 @@ async function run (): Promise<void> {
     console.log(completion)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
-    const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
-      .map((file) => file.filename)
-      .join(', ')}`
+    const comment = `GPT summary of ${commit.sha}:\n\n${completion}`
 
     await octokit.issues.createComment({
       owner: repository.owner.login,
