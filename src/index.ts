@@ -41,7 +41,7 @@ const configuration = new Configuration({
 })
 const openai = new OpenAIApi(configuration)
 
-function formatGitDiff (filename: string, patch: string[]): string {
+function formatGitDiff (filename: string, patch: string): string {
   console.log('filename')
   console.log(filename)
   console.log('patch')
@@ -50,7 +50,7 @@ function formatGitDiff (filename: string, patch: string[]): string {
   const result = []
   result.push(`--- a/${filename}`)
   result.push(`+++ b/${filename}`)
-  for (const line of patch) {
+  for (const line of patch.split('\n')) {
     result.push(line)
   }
   const finalResult = result.join('\n')
