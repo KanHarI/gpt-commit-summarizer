@@ -52,6 +52,32 @@ function formatGitDiff (filename: string, patch: string): string {
   return result.join('\n')
 }
 
+async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string): Promise<string> {
+  try {
+    const diffResponse = await octokit.request(comparison.url)
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
+
+    const response = await openai.createCompletion({
+      model: 'text-davinci-003',
+      prompt: openAIPrompt,
+      max_tokens: 512,
+      temperature: 0.5
+    })
+
+    if (response.data.choices !== undefined && response.data.choices.length > 0) {
+      completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
+    }
+  } catch (error) {
+    console.error(error)
+  }
+  return completion
+}
+
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
   const {
@@ -59,6 +85,7 @@ async function run (): Promise<void> {
   } = (context.payload.pull_request as {
     number: number
   })
+  const issueNumber = number
   const repository = context.payload.repository
 
   if (repository === undefined) {
@@ -68,7 +95,7 @@ async function run (): Promise<void> {
   const comments = await octokit.paginate(octokit.issues.listComments, {
     owner: repository.owner.login,
     repo: repository.name,
-    issue_number: number
+    issue_number: issueNumber
   })
 
   let commitsSummarized = 0
@@ -77,7 +104,7 @@ async function run (): Promise<void> {
   const commits = await octokit.paginate(octokit.pulls.listCommits, {
     owner: repository.owner.login,
     repo: repository.name,
-    pull_number: number
+    pull_number: issueNumber
   })
 
   for (const commit of commits) {
@@ -114,28 +141,7 @@ async function run (): Promise<void> {
 
     let completion = "Error: couldn't generate summary"
     if (!isMergeCommit) {
-      try {
-        const diffResponse = await octokit.request(comparison.url)
-
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
-
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
-
-        const response = await openai.createCompletion({
-          model: 'text-davinci-003',
-          prompt: openAIPrompt,
-          max_tokens: 512,
-          temperature: 0.5
-        })
-
-        if (response.data.choices !== undefined && response.data.choices.length > 0) {
-          completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
-        }
-      } catch (error) {
-        console.error(error)
-      }
+      completion = await getOpenAICompletion(comparison, completion)
     } else {
       completion = 'Not generating summary for merge commits'
     }
@@ -146,7 +152,7 @@ async function run (): Promise<void> {
     await octokit.issues.createComment({
       owner: repository.owner.login,
       repo: repository.name,
-      issue_number: number,
+      issue_number: issueNumber,
       body: comment,
       commit_id: commit.sha
     })
