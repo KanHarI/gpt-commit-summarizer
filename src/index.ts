@@ -52,7 +52,7 @@ async function run (): Promise<void> {
 
   for (const commit of commits) {
     // Check if a comment for this commit already exists
-    const expectedComment = `GPT summary of ${commit.sha}: `
+    const expectedComment = `GPT summary of ${commit.sha}:`
     const regex = new RegExp(`^${expectedComment}.*$`)
     const existingComment = comments.find((comment) => regex.test(comment.body ?? ''))
 
