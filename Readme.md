@@ -1,8 +1,12 @@
 # gpt-commit-summarizer
-This is a GitHub Action that uses OpenAI's GPT-3 language model to generate
-a summary of each commit in a pull request. This can be helpful for
-providing a high-level overview of the changes made in a pull request,
-making it easier to review and understand.
+The KanHarI/gpt-commit-summarizer GitHub Action is a powerful tool
+that harnesses the capabilities of OpenAI's state-of-the-art
+text-davinci-003 large language model to provide summaries of the
+changes introduced by a pull request in a repository. By generating
+the git diff for each commit and sending it to the OpenAI API with a
+carefully crafted prompt, the action is able to produce concise and
+informative summaries that can greatly enhance collaboration and
+understanding in large codebases.
 
 ## Setting up
 To use this action, you will need to have an OpenAI API key.
