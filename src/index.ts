@@ -68,7 +68,7 @@ async function run (): Promise<void> {
 
     console.log('Got rawGitDiff')
 
-    console.log(rawGitDiff.data)
+    console.log(rawGitDiff.data.files.map((file: any) => file.patch))
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
