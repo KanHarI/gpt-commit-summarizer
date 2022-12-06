@@ -100,6 +100,13 @@ async function run (): Promise<void> {
     })
 
     console.log(response)
+    let completion = "Error: couldn't generate summary"
+    if (response.data.choices !== undefined && response.data.choices.length > 0) {
+      completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
+    }
+
+    console.log('completion:')
+    console.log(completion)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
