@@ -62,7 +62,11 @@ async function run (): Promise<void> {
       head: commit.sha
     })
 
-    const rawGitDiff = await octokit.request(comparison.data.diff_url)
+    console.log('Got comparison')
+
+    const rawGitDiff = await octokit.request(comparison.url)
+
+    console.log('Got rawGitDiff')
 
     console.log(rawGitDiff.data)
 
