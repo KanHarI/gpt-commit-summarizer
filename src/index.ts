@@ -52,7 +52,6 @@ async function run (): Promise<void> {
     repo: repository.name,
     issue_number: number
   }, (data: any) => comments.push(...data))
-  console.log('Comments: ', comments)
 
   const diffs: Awaited<ReturnType<typeof octokit.pulls.listFiles>>['data'] = []
   await paginate(octokit.pulls.listFiles, {
@@ -60,16 +59,16 @@ async function run (): Promise<void> {
     repo: repository.name,
     pull_number: number
   }, (data: any) => diffs.push(...data))
-  console.log('Diffs: ', diffs)
 
   // For each commit, get the list of files that were modified
-  const commits = await octokit.pulls.listCommits({
+  const commits: Awaited<ReturnType<typeof octokit.pulls.listCommits>>['data'] = []
+  await paginate(octokit.pulls.listCommits, {
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: number
-  })
+  }, (data: any) => commits.push(...data))
 
-  for (const commit of commits.data) {
+  for (const commit of commits) {
     // Check if a comment for this commit already exists
     const expectedComment = `GPT summary of ${commit.sha}: `
     const regex = new RegExp(`^${expectedComment}.*$`)
