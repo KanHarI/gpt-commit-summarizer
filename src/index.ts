@@ -9,8 +9,8 @@ const OPEN_AI_PRIMING = 'You are an expert programmer, and you are trying to sum
   'A line that starts with neither is code given for context and better understanding. It is not part of the diff.\n' +
   'An example of the diff format:\n' +
   '```\n' +
-  '--- a/packages/utils/package.json\n' +
-  '+++ b/packages/utils/package.json\n' +
+  '--- a/packages/utils/math/IAmNotARealFile.ts\n' +
+  '+++ b/packages/utils/math/IAmNotARealFile.ts\n' +
   '@@ -1 +1 @@\n' +
   '-export const I_AM_NOT_A_REAL_FILE = 20;\n' +
   '+export const I_AM_NOT_A_REAL_FILE = 21;\n' +
