@@ -22,6 +22,7 @@
   "dependencies": {
     "@actions/github": "^5.1.1",
     "@octokit/core": "^4.1.0",
+    "@octokit/plugin-paginate-rest": "^5.0.1",
     "@octokit/rest": "^19.0.5"
   }
 }

@@ -5,34 +5,6 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
 
-async function paginate (apiMethod: any, params: any, callback: any): Promise<void> {
-  let page = 1
-  while (true) {
-    // Get the current page of results
-    const response = await apiMethod({
-      ...params,
-      per_page: 100,
-      page
-    })
-
-    // If there is no response, break out of the loop
-    if (response === undefined) {
-      break
-    }
-
-    // Call the callback function with the current page of results
-    callback(response.data)
-
-    // If there are no more pages of results, break out of the loop
-    if ((response.headers.link?.includes('next')) === false) {
-      break
-    }
-
-    // Increment the page number
-    page++
-  }
-}
-
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
   const {
@@ -46,27 +18,24 @@ async function run (): Promise<void> {
     throw new Error('Repository undefined')
   }
 
-  const comments: Awaited<ReturnType<typeof octokit.issues.listComments>>['data'] = []
-  await paginate(octokit.issues.listComments, {
+  const comments = await octokit.paginate(octokit.issues.listComments, {
     owner: repository.owner.login,
     repo: repository.name,
     issue_number: number
-  }, (data: any) => comments.push(...data))
+  })
 
-  const diffs: Awaited<ReturnType<typeof octokit.pulls.listFiles>>['data'] = []
-  await paginate(octokit.pulls.listFiles, {
+  const diffs = await octokit.paginate(octokit.pulls.listFiles, {
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: number
-  }, (data: any) => diffs.push(...data))
+  })
 
   // For each commit, get the list of files that were modified
-  const commits: Awaited<ReturnType<typeof octokit.pulls.listCommits>>['data'] = []
-  await paginate(octokit.pulls.listCommits, {
+  const commits = await octokit.paginate(octokit.pulls.listCommits, {
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: number
-  }, (data: any) => commits.push(...data))
+  })
 
   for (const commit of commits) {
     // Check if a comment for this commit already exists
