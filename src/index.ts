@@ -15,6 +15,8 @@ const OPEN_AI_PRIMING = 'You are an expert programmer, and you are trying to sum
   '[General]: Switched from raw list manipulation to vectorization using numpy\n' +
   '```\n'
 
+const MAX_COMMITS_TO_SUMMARIZE = 5
+
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
@@ -42,6 +44,8 @@ async function run (): Promise<void> {
     repo: repository.name,
     issue_number: number
   })
+
+  let commitsSummarized = 0
 
   // For each commit, get the list of files that were modified
   const commits = await octokit.paginate(octokit.pulls.listCommits, {
@@ -112,6 +116,11 @@ async function run (): Promise<void> {
       body: comment,
       commit_id: commit.sha
     })
+    commitsSummarized++
+    if (commitsSummarized > MAX_COMMITS_TO_SUMMARIZE) {
+      console.log('Max commits summarized - if you want to summarize more, rerun the action. This is a protection against spamming the PR with comments')
+      break
+    }
   }
 }
 
