@@ -1,6 +1,8 @@
 import { Octokit } from '@octokit/rest'
 import { context } from '@actions/github'
 
+import { Configuration, OpenAIApi } from 'openai'
+
 const OPEN_AI_PRIMING = 'You are an expert programmer, and you are trying to summarize a git diff. The git diff is not in the usual format, but in a very close format. Go over the git diff and summarize it.\n' +
   '\n' +
   '\n' +
@@ -16,6 +18,11 @@ const OPEN_AI_PRIMING = 'You are an expert programmer, and you are trying to sum
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY
+})
+const openai = new OpenAIApi(configuration)
 
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
@@ -84,7 +91,16 @@ async function run (): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
 
+    // TODO: Ask OpenAI for a completion using text-davinci-003
     console.log(openAIPrompt)
+    const response = await openai.createCompletion({
+      model: 'text-davinci-003',
+      prompt: openAIPrompt,
+      max_tokens: 512,
+      temperature: 0.5
+    })
+
+    console.log(response)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
