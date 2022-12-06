@@ -91,7 +91,6 @@ async function run (): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
 
-    // TODO: Ask OpenAI for a completion using text-davinci-003
     console.log(openAIPrompt)
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
