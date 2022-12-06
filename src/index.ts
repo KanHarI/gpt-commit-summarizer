@@ -114,23 +114,27 @@ async function run (): Promise<void> {
 
     let completion = "Error: couldn't generate summary"
     if (!isMergeCommit) {
-      const diffResponse = await octokit.request(comparison.url)
+      try {
+        const diffResponse = await octokit.request(comparison.url)
 
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
 
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
 
-      const response = await openai.createCompletion({
-        model: 'text-davinci-003',
-        prompt: openAIPrompt,
-        max_tokens: 512,
-        temperature: 0.5
-      })
+        const response = await openai.createCompletion({
+          model: 'text-davinci-003',
+          prompt: openAIPrompt,
+          max_tokens: 512,
+          temperature: 0.5
+        })
 
-      if (response.data.choices !== undefined && response.data.choices.length > 0) {
-        completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
+        if (response.data.choices !== undefined && response.data.choices.length > 0) {
+          completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
+        }
+      } catch (error) {
+        console.error(error)
       }
     } else {
       completion = 'Not generating summary for merge commits'
