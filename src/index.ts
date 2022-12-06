@@ -49,6 +49,10 @@ async function run (): Promise<void> {
       ref: commit.sha
     })
 
+    if (commitObject.data.files === undefined) {
+      throw new Error('Files undefined')
+    }
+
     const parent = commitObject.data.parents[0].sha
 
     const comparison = await octokit.repos.compareCommits({
@@ -58,14 +62,9 @@ async function run (): Promise<void> {
       head: commit.sha
     })
 
-    console.log('comparison.data')
-    console.log(comparison.data)
-    console.log('comparison.url')
-    console.log(comparison.url)
+    const rawGitDiff = await octokit.request(comparison.data.diff_url)
 
-    if (commitObject.data.files === undefined) {
-      throw new Error('Files undefined')
-    }
+    console.log(rawGitDiff.data)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
