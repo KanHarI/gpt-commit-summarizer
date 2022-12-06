@@ -1,6 +1,18 @@
 import { Octokit } from '@octokit/rest'
 import { context } from '@actions/github'
 
+const OPEN_AI_PRIMING = 'You are an expert programmer, and you are trying to summarize a git diff. The git diff is not in the usual format, but in a very close format. Go over the git diff and summarize it.\n' +
+  '\n' +
+  '\n' +
+  'Please write a summary of the changes in the diff. For each change, if there is a relevant file, write [filename]:[comment]. An example of this format is\n' +
+  '```\n' +
+  '[/path/to/a/file]: Summary of the change\n' +
+  '```\n' +
+  'If there are any other changes that are not localized to a single file, write them as\n' +
+  '```\n' +
+  '[General]: Switched from raw list manipulation to vectorization using numpy\n' +
+  '```\n'
+
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 })
@@ -66,14 +78,13 @@ async function run (): Promise<void> {
 
     const diffResponse = await octokit.request(comparison.url)
 
-    console.log('Got rawGitDiff')
-
-    console.log(diffResponse.data.files)
-
-    console.log('\n\nRAW DIFF\n\n')
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const commitRawDiff = diffResponse.data.files.map((file: any) => `DIFF IN ${file.filename}: \n${file.patch}`).join('\n')
-    console.log(commitRawDiff)
+
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
+
+    console.log(openAIPrompt)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
