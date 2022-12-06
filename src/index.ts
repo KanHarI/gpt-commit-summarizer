@@ -86,6 +86,8 @@ async function run (): Promise<void> {
       ref: commit.sha
     })
 
+    console.log('commit', commitObject.data.commit)
+
     if (commitObject.data.files === undefined) {
       throw new Error('Files undefined')
     }
@@ -97,8 +99,6 @@ async function run (): Promise<void> {
     if (diff === undefined) {
       continue
     }
-
-    console.log(diff.patch)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files

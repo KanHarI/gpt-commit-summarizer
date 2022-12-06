@@ -1,0 +1,61 @@
+diff --git a/lib/index.js b/lib/index.js
+index 23675b4..faec5a0 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -10797,16 +10797,17 @@ function run() {
+             pull_number: number
+         }, (data) => diffs.push(...data));
+         // For each commit, get the list of files that were modified
+-        const commits = yield octokit.pulls.listCommits({
++        const commits = [];
++        yield paginate(octokit.pulls.listCommits, {
+             owner: repository.owner.login,
+             repo: repository.name,
+             pull_number: number
+-        });
+-        for (const commit of commits.data) {
++        }, (data) => commits.push(...data));
++        for (const commit of commits) {
+             // Check if a comment for this commit already exists
+             const expectedComment = `GPT summary of ${commit.sha}: `;
+             const regex = new RegExp(`^${expectedComment}.*$`);
+-            const existingComment = (comments).find((comment) => { var _a; return regex.test((_a = comment.body) !== null && _a !== void 0 ? _a : ''); });
++            const existingComment = comments.find((comment) => { var _a; return regex.test((_a = comment.body) !== null && _a !== void 0 ? _a : ''); });
+             // If a comment already exists, skip this commit
+             if (existingComment !== undefined) {
+                 continue;
+@@ -10826,6 +10827,7 @@ function run() {
+             if (diff === undefined) {
+                 continue;
+             }
++            console.log(diff.patch);
+             // Create a comment on the pull request with the names of the files that were modified in the commit
+             const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
+                 .map((file) => file.filename)
+diff --git a/src/index.ts b/src/index.ts
+index fd4ed46..95c07f9 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -61,17 +61,18 @@ async function run (): Promise<void> {
+   }, (data: any) => diffs.push(...data))
+ 
+   // For each commit, get the list of files that were modified
+-  const commits = await octokit.pulls.listCommits({
++  const commits: Awaited<ReturnType<typeof octokit.pulls.listCommits>>['data'] = []
++  await paginate(octokit.pulls.listCommits, {
+     owner: repository.owner.login,
+     repo: repository.name,
+     pull_number: number
+-  })
++  }, (data: any) => commits.push(...data))
+ 
+-  for (const commit of commits.data) {
++  for (const commit of commits) {
+     // Check if a comment for this commit already exists
+     const expectedComment = `GPT summary of ${commit.sha}: `
+     const regex = new RegExp(`^${expectedComment}.*$`)
+-    const existingComment = (comments).find((comment) => regex.test(comment.body ?? ''))
++    const existingComment = comments.find((comment) => regex.test(comment.body ?? ''))
+ 
+     // If a comment already exists, skip this commit
+     if (existingComment !== undefined) {
