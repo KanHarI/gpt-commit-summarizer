@@ -98,6 +98,8 @@ async function run (): Promise<void> {
       continue
     }
 
+    console.log(diff.patch)
+
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
       .map((file) => file.filename)
