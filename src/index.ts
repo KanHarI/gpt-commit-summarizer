@@ -42,21 +42,14 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration)
 
 function formatGitDiff (filename: string, patch: string): string {
-  console.log('filename')
-  console.log(filename)
-  console.log('patch')
-  console.log(patch)
-
   const result = []
   result.push(`--- a/${filename}`)
   result.push(`+++ b/${filename}`)
   for (const line of patch.split('\n')) {
     result.push(line)
   }
-  const finalResult = result.join('\n')
-  console.log('finalResult')
-  console.log(finalResult)
-  return finalResult
+  result.push('')
+  return result.join('\n')
 }
 
 async function run (): Promise<void> {
@@ -120,8 +113,6 @@ async function run (): Promise<void> {
 
     const diffResponse = await octokit.request(comparison.url)
 
-    console.log(diffResponse.data.files)
-
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
 
@@ -135,7 +126,6 @@ async function run (): Promise<void> {
       temperature: 0.5
     })
 
-    console.log(response)
     let completion = "Error: couldn't generate summary"
     if (response.data.choices !== undefined && response.data.choices.length > 0) {
       completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
