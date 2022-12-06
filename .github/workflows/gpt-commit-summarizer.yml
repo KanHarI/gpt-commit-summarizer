@@ -7,7 +7,7 @@ on:
 
 jobs:
   summarize:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - uses: KanHarI/gpt-commit-summarizer@master
