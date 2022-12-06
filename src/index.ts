@@ -64,11 +64,16 @@ async function run (): Promise<void> {
 
     console.log('Got comparison')
 
-    const rawGitDiff = await octokit.request(comparison.url)
+    const diffResponse = await octokit.request(comparison.url)
 
     console.log('Got rawGitDiff')
 
-    console.log(rawGitDiff.data.files.map((file: any) => file.patch))
+    console.log(diffResponse.data.files)
+
+    console.log('\n\nRAW DIFF\n\n')
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    const commitRawDiff = diffResponse.data.files.map((file: any) => `DIFF IN ${file.filename}: \n${file.patch}`).join('\n')
+    console.log(commitRawDiff)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}: ${commitObject.data.files
