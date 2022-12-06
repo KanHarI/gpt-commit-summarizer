@@ -81,8 +81,6 @@ async function run (): Promise<void> {
       head: commit.sha
     })
 
-    console.log('Got comparison')
-
     const diffResponse = await octokit.request(comparison.url)
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -91,7 +89,6 @@ async function run (): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
 
-    console.log(openAIPrompt)
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
       prompt: openAIPrompt,
@@ -104,9 +101,6 @@ async function run (): Promise<void> {
     if (response.data.choices !== undefined && response.data.choices.length > 0) {
       completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
     }
-
-    console.log('completion:')
-    console.log(completion)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}:\n\n${completion}`
