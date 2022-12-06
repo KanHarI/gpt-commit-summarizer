@@ -147,7 +147,7 @@ async function run (): Promise<void> {
       commit_id: commit.sha
     })
     commitsSummarized++
-    if (commitsSummarized > MAX_COMMITS_TO_SUMMARIZE) {
+    if (commitsSummarized >= MAX_COMMITS_TO_SUMMARIZE) {
       console.log('Max commits summarized - if you want to summarize more, rerun the action. This is a protection against spamming the PR with comments')
       break
     }
