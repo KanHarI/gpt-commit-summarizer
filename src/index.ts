@@ -41,6 +41,24 @@ const configuration = new Configuration({
 })
 const openai = new OpenAIApi(configuration)
 
+function formatGitDiff (filename: string, patch: string[]): string {
+  console.log('filename')
+  console.log(filename)
+  console.log('patch')
+  console.log(patch)
+
+  const result = []
+  result.push(`--- a/${filename}`)
+  result.push(`+++ b/${filename}`)
+  for (const line of patch) {
+    result.push(line)
+  }
+  const finalResult = result.join('\n')
+  console.log('finalResult')
+  console.log(finalResult)
+  return finalResult
+}
+
 async function run (): Promise<void> {
   // Get the pull request number and repository owner and name from the context object
   const {
@@ -102,8 +120,10 @@ async function run (): Promise<void> {
 
     const diffResponse = await octokit.request(comparison.url)
 
+    console.log(diffResponse.data.files)
+
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const commitRawDiff = diffResponse.data.files.map((file: any) => `DIFF IN ${file.filename}: \n${file.patch}`).join('\n')
+    const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
