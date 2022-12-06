@@ -3,7 +3,8 @@ import { context } from '@actions/github'
 
 import { Configuration, OpenAIApi } from 'openai'
 
-const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff. The git diff is not in the usual format, but in a very close format. Go over the git diff and summarize it. Do not repeat comments from the code in the summary.
+const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
+The git diff is not in the usual format, but in a very close format.
 Please notice that a line that starting with \`-\` means that line was deleted.
 A line starting with \`+\` means it was added.
 A line that starts with neither is code given for context and better understanding. It is not part of the diff.
@@ -17,18 +18,18 @@ An example of the diff format:
 export const ANOTHER_CONSTANT = 40;
 \`\`\`
 This means that the constant \`I_AM_NOT_A_REAL_FILE\` was changed from 20 to 21.
+Note that is is an example and not part of the real diff.
 
 Please write a summary of the changes in the diff.
-For each change, if there is a relevant file, write [filename]: [comment]. An example of this format is
+Fot example, if we swithced the distance graph calculation from using scipy to numpy, write
 \`\`\`
-[packages/utils/math/IAmNotARealFile.ts]: constant \`I_AM_NOT_A_REAL_FILE\` was changed from \`20\` to \`21\`
+* Switched distance graph calculation from \`scipy\` to \`numpy\`
 \`\`\`
-If there are any other changes that are not localized to a single file, write them as [general]: [comment].
-Fot example, if we swithced the distance graph calculation from using scipy to numpy, and it required changes in many files, write:
-\`\`\`
-[General]: Switched distance graph calculation from \`scipy\` to \`numpy\`
-\`\`\`
-Write every file comment and general comment in a new line.
+Write every summary comment in a new line.
+Comments should be in a bullet point list, each line starting with a \`*\`.
+The summary should not include comments copied from the code.
+The output should be easily readable. When in doubt, write less comments and not more.
+Readability is top priority. Write only the most important comments about the diff.
 `
 
 const MAX_COMMITS_TO_SUMMARIZE = 5
