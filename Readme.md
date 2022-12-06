@@ -7,7 +7,7 @@ making it easier to review and understand.
 ## Setting up
 To use this action, you will need to have an OpenAI API key.
 If you don't already have one, you can sign up for an OpenAI API 
-key [here](here).
+key [here](https://beta.openai.com/docs/quickstart).
 
 Once you have your API key, you will need to add it to your GitHub
 repository as a secret. To do this, go to your repository's settings
