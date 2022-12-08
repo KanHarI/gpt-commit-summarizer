@@ -7,7 +7,7 @@ async function getReviewComment (pullRequestNumber: number, repository: PayloadR
     repo: repository.name,
     pull_number: pullRequestNumber
   })
-  console.log(reviewComments)
+  console.log('reviewComments:\n', reviewComments)
 }
 
 export async function getFilesSummaries (pullNumber: number,
