@@ -3,7 +3,6 @@ import { openai } from './openAi'
 import { gitDiffMetadata } from './DiffMetadata'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
-This is a modified git diff version.
 Reminders about the git diff format:
 For every file, there are a few metadata lines, like (for example):
 \`\`\`
