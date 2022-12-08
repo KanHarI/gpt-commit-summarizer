@@ -5,7 +5,7 @@ import { Configuration, OpenAIApi } from 'openai'
 import { PayloadRepository } from '@actions/github/lib/interfaces'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
-THE GIT DIFF FORMAT:
+Reminders about the git diff format:
 The git diff is a list of files that were modified in a commit and their modifications.
 The first two lines for every modified file looks like this:
 --- a/path/to/modified/python/file.py
@@ -34,6 +34,8 @@ EXAMPLE SUMMARY FORMAT:
 * Raised the amount of returned recordings from 10 to 100 [recordings_api.ts], [constants.ts]
 * Fixed a typo in the github action name [gpt-commit-summarizer.yml]
 * Changed indentation style in all YAMLs
+* Interface the OpenAI API for completions [openai.ts]
+* Added more examples of usage to all the READMEs
 \`\`\`
 Do not include parts of the example in your summary. It is given only as an output example.
 `
@@ -56,17 +58,6 @@ interface gitDiffMetadata {
   patches?: Record<string, string>
 }
 
-function formatGitDiff (filename: string, patch: string): string {
-  const result = []
-  result.push(`--- a/${filename}`)
-  result.push(`+++ b/${filename}`)
-  for (const line of patch.split('\n')) {
-    result.push(line)
-  }
-  result.push('')
-  return result.join('\n')
-}
-
 function postprocessSummary (filesList: string[], summary: string, diffMetadata: gitDiffMetadata): string {
   console.log('Postprocessing summary')
   console.log('filesList:\n', filesList)
@@ -86,15 +77,15 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
 async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string, diffMetadata: gitDiffMetadata): Promise<string> {
   try {
     const diffResponse = await octokit.request(comparison.url)
+    const rawGitDiff = await octokit.request(diffResponse.data.diff_url)
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
+    console.log(rawGitDiff)
 
     console.log('diffResponse:\n', diffResponse)
     console.log('diffResponse.data.files:\n', diffResponse.data.files)
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nTHE SUMMERY:\n`
+    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff as unknown as string}\n\`\`\`\n\nTHE SUMMERY:\n`
 
     console.log(`OpenAI prompt: ${openAIPrompt}`)
 
