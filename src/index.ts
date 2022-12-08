@@ -157,6 +157,15 @@ async function run (): Promise<void> {
       ref: commit.sha
     })
 
+    await octokit.pulls.listFiles({
+      owner: repository.owner.login,
+      repo: repository.name,
+      pull_number: issueNumber
+    }).then(result => {
+      console.log('PR Files:')
+      console.log(result)
+    })
+
     const tree = await octokit.git.getTree({
       owner: repository.owner.login,
       repo: repository.name,
