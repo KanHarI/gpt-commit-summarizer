@@ -114,6 +114,8 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nTHE SUMMERY:\n`
 
+    console.log(`OpenAI prompt: ${openAIPrompt}`)
+
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
       prompt: openAIPrompt,
@@ -193,7 +195,6 @@ async function run (): Promise<void> {
 
     let completion = "Error: couldn't generate summary"
     if (!isMergeCommit) {
-      console.log(`completion: ${completion}`)
       completion = await getOpenAICompletion(comparison, completion)
     } else {
       completion = 'Not generating summary for merge commits'
