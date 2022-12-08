@@ -47,6 +47,10 @@ Do not include parts of the example in your summary.
 It is given only as an example of appropriate comments.
 `
 
+const MODEL_NAME = 'text-davinci-003'
+const TEMPERATURE = 0.5
+const MAX_TOKENS = 512
+
 function formatGitDiff (filename: string, patch: string): string {
   const result = []
   result.push(`--- a/${filename}`)
@@ -88,10 +92,10 @@ export async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof
     console.log(`OpenAI prompt: ${openAIPrompt}`)
 
     const response = await openai.createCompletion({
-      model: 'text-davinci-003',
+      model: MODEL_NAME,
       prompt: openAIPrompt,
-      max_tokens: 512,
-      temperature: 0.5
+      max_tokens: MAX_TOKENS,
+      temperature: TEMPERATURE
     })
 
     if (response.data.choices !== undefined && response.data.choices.length > 0) {
