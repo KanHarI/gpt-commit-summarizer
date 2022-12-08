@@ -5,20 +5,12 @@ import { getOpenAICompletion } from './commitSummary'
 
 const MAX_COMMITS_TO_SUMMARIZE = 20
 
-async function run (): Promise<void> {
-  // Get the pull request number and repository owner and name from the context object
-  const {
-    number
-  } = (context.payload.pull_request as {
-    number: number
-  })
-  const issueNumber = number
-  const repository = context.payload.repository
+const COMMIT_SUMMARIES: Record<string, string> = {}
 
-  if (repository === undefined) {
-    throw new Error('Repository undefined')
-  }
-
+async function summarizeCommits (
+  issueNumber: number,
+  repository: { owner: { login: string }, name: string }
+): Promise<void> {
   const comments = await octokit.paginate(octokit.issues.listComments, {
     owner: repository.owner.login,
     repo: repository.name,
@@ -42,6 +34,9 @@ async function run (): Promise<void> {
 
     // If a comment already exists, skip this commit
     if (existingComment !== undefined) {
+      const currentCommitAbovePrSummary = existingComment.body?.split('PR summary so far:')[0] ?? ''
+      const summaryLines = currentCommitAbovePrSummary.split('\n').slice(1).join('\n')
+      COMMIT_SUMMARIES[commit.sha] = summaryLines
       continue
     }
 
@@ -78,6 +73,8 @@ async function run (): Promise<void> {
       completion = 'Not generating summary for merge commits'
     }
 
+    COMMIT_SUMMARIES[commit.sha] = completion
+
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}:\n\n${completion}`
 
@@ -94,6 +91,22 @@ async function run (): Promise<void> {
       break
     }
   }
+}
+
+async function run (): Promise<void> {
+  // Get the pull request number and repository owner and name from the context object
+  const {
+    number
+  } = (context.payload.pull_request as {
+    number: number
+  })
+  const issueNumber = number
+  const repository = context.payload.repository
+
+  if (repository === undefined) {
+    throw new Error('Repository undefined')
+  }
+  await summarizeCommits(issueNumber, repository)
 }
 
 run().catch(error => {
