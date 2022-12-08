@@ -1,5 +1,5 @@
 import { octokit } from './octokit'
-import { openai } from './openAi'
+import { MAX_OPEN_AI_QUERY_LENGTH, openai } from './openAi'
 import { gitDiffMetadata } from './DiffMetadata'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
@@ -90,6 +90,10 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff}\n\`\`\`\n\nTHE SUMMERY:\n`
 
     console.log(`OpenAI prompt: ${openAIPrompt}`)
+
+    if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
+      throw new Error('OpenAI query too big')
+    }
 
     const response = await openai.createCompletion({
       model: MODEL_NAME,
