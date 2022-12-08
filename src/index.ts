@@ -90,6 +90,7 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
 
+    console.log('diffResponse:\n', diffResponse)
     console.log('diffResponse.data.files:\n', diffResponse.data.files)
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
