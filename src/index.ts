@@ -61,7 +61,7 @@ interface gitDiffMetadata {
   sha: string
   issueNumber: number
   repository: PayloadRepository
-  patches?: Record<string, string>
+  commit: Awaited<ReturnType<typeof octokit.repos.getCommit>>
 }
 
 function postprocessSummary (filesList: string[], summary: string, diffMetadata: gitDiffMetadata): string {
@@ -71,9 +71,9 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
   for (const fileName of filesList) {
     const link = 'https://github.com/' +
       `${diffMetadata.repository.owner.login}/` +
-      `${diffMetadata.repository.name}/pull/` +
-      `${diffMetadata.issueNumber}/` +
-      `files#diff-${((diffMetadata.patches !== undefined) ? diffMetadata.patches[fileName] : undefined) ?? ''}`
+      `${diffMetadata.repository.name}/blob/` +
+      `${diffMetadata.commit.data.sha}/` +
+      `${fileName}`
     summary = summary.split(`[${fileName}]`).join(`[${fileName}](${link})`)
   }
   console.log('Postprocessed summary:\n', summary)
@@ -157,27 +157,18 @@ async function run (): Promise<void> {
       ref: commit.sha
     })
 
-    await octokit.pulls.listFiles({
-      owner: repository.owner.login,
-      repo: repository.name,
-      pull_number: issueNumber
-    }).then(result => {
-      console.log('PR Files:')
-      console.log(result)
-    })
-
-    const tree = await octokit.git.getTree({
-      owner: repository.owner.login,
-      repo: repository.name,
-      tree_sha: commitObject.data.commit.tree.sha
-    })
-
-    console.log('tree.data:\n', tree.data)
-    // Find the index hash for the file you are interested in
-    const file = tree.data.tree.find(file => file.path === 'lib/index.js')
-    const indexHash = file?.sha
-
-    console.log('indexHash:\n', indexHash)
+    // const tree = await octokit.git.getTree({
+    //   owner: repository.owner.login,
+    //   repo: repository.name,
+    //   tree_sha: commitObject.data.commit.tree.sha
+    // })
+    //
+    // console.log('tree.data:\n', tree.data)
+    // // Find the index hash for the file you are interested in
+    // const file = tree.data.tree.find(file => file.path === 'lib/index.js')
+    // const indexHash = file?.sha
+    //
+    // console.log('indexHash:\n', indexHash)
 
     if (commitObject.data.files === undefined) {
       throw new Error('Files undefined')
@@ -199,7 +190,7 @@ async function run (): Promise<void> {
         sha: commit.sha,
         issueNumber,
         repository,
-        patches: undefined
+        commit: commitObject
       })
     } else {
       completion = 'Not generating summary for merge commits'
