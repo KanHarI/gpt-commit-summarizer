@@ -69,12 +69,14 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
   console.log('filesList:\n', filesList)
   console.log('summary:\n', summary)
   for (const fileName of filesList) {
+    const splitFileName = fileName.split('/')
+    const shortName = splitFileName[splitFileName.length - 1]
     const link = 'https://github.com/' +
       `${diffMetadata.repository.owner.login}/` +
       `${diffMetadata.repository.name}/blob/` +
       `${diffMetadata.commit.data.sha}/` +
       `${fileName}`
-    summary = summary.split(`[${fileName}]`).join(`[${fileName}](${link})`)
+    summary = summary.split(`[${fileName}]`).join(`[${shortName}](${link})`)
   }
   console.log('Postprocessed summary:\n', summary)
   return summary
