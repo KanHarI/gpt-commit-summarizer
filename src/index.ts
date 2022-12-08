@@ -60,6 +60,9 @@ function formatGitDiff (filename: string, patch: string): string {
 }
 
 function postprocessSummary (filesList: string[], summary: string): string {
+  console.log('Postprocessing summary')
+  console.log('filesList', filesList)
+  console.log('summary', summary)
   for (const fileName of filesList) {
     summary.replace(`[${fileName}]`, '[$' + fileName + '$]')
   }
