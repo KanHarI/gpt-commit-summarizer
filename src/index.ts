@@ -59,6 +59,13 @@ function formatGitDiff (filename: string, patch: string): string {
   return result.join('\n')
 }
 
+function postprocessSummary (filesList: string[], summary: string): string {
+  for (const fileName of filesList) {
+    summary.replace(`[${fileName}]`, '[$' + fileName + '$]')
+  }
+  return summary
+}
+
 async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string): Promise<string> {
   try {
     const diffResponse = await octokit.request(comparison.url)
@@ -79,7 +86,7 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
     })
 
     if (response.data.choices !== undefined && response.data.choices.length > 0) {
-      completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
+      completion = postprocessSummary(diffResponse.data.files.map((file: any) => file.filename), response.data.choices[0].text ?? "Error: couldn't generate summary")
     }
   } catch (error) {
     console.error(error)
