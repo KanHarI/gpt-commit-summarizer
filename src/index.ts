@@ -5,12 +5,12 @@ import { getOpenAICompletion } from './commitSummary'
 
 const MAX_COMMITS_TO_SUMMARIZE = 20
 
-const COMMIT_SUMMARIES: Record<string, string> = {}
-
 async function summarizeCommits (
   issueNumber: number,
   repository: { owner: { login: string }, name: string }
-): Promise<void> {
+): Promise<string[]> {
+  const commitSummaries: string[] = []
+
   const comments = await octokit.paginate(octokit.issues.listComments, {
     owner: repository.owner.login,
     repo: repository.name,
@@ -36,7 +36,7 @@ async function summarizeCommits (
     if (existingComment !== undefined) {
       const currentCommitAbovePrSummary = existingComment.body?.split('PR summary so far:')[0] ?? ''
       const summaryLines = currentCommitAbovePrSummary.split('\n').slice(1).join('\n')
-      COMMIT_SUMMARIES[commit.sha] = summaryLines
+      commitSummaries.push(summaryLines)
       continue
     }
 
@@ -73,7 +73,7 @@ async function summarizeCommits (
       completion = 'Not generating summary for merge commits'
     }
 
-    COMMIT_SUMMARIES[commit.sha] = completion
+    commitSummaries.push(completion)
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}:\n\n${completion}`
@@ -91,6 +91,7 @@ async function summarizeCommits (
       break
     }
   }
+  return commitSummaries
 }
 
 async function run (): Promise<void> {
@@ -106,7 +107,8 @@ async function run (): Promise<void> {
   if (repository === undefined) {
     throw new Error('Repository undefined')
   }
-  await summarizeCommits(issueNumber, repository)
+  const commitSummaries = await summarizeCommits(issueNumber, repository)
+  console.log(commitSummaries)
 }
 
 run().catch(error => {
