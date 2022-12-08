@@ -46,7 +46,7 @@ EXAMPLE SUMMARY FORMAT:
 Do not include parts of the example in your summary. It is given only as an output example.
 `
 
-const MAX_COMMITS_TO_SUMMARIZE = 5
+const MAX_COMMITS_TO_SUMMARIZE = 20
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
