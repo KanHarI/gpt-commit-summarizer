@@ -27,6 +27,7 @@ For comments that refer to 1 or 2 modified files,
 add the file names as [path/to/modified/python/file.py], [path/to/another/file.json]
 at the end of the comment.
 If there are more than two, do not include the file names in this way.
+Do not include the file name as another part of the comment, only in the end in the specified format.
 Do not use the characters \`[\` or \`]\` in the summary for other purposes.
 Write every summary comment in a new line.
 Comments should be in a bullet point list, each line starting with a \`*\`.
