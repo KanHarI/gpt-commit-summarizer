@@ -53,6 +53,7 @@ interface gitDiffMetadata {
   sha: string
   issueNumber: number
   repository: PayloadRepository
+  patches?: Record<string, string>
 }
 
 function formatGitDiff (filename: string, patch: string): string {
@@ -71,7 +72,11 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
   console.log('filesList:\n', filesList)
   console.log('summary:\n', summary)
   for (const fileName of filesList) {
-    const link = `https://github.com/${diffMetadata.repository.owner.login}/${diffMetadata.repository.name}/pull/${diffMetadata.issueNumber}/files#diff-${diffMetadata.sha}-${fileName}`
+    const link = 'https://github.com/' +
+      `${diffMetadata.repository.owner.login}/` +
+      `${diffMetadata.repository.name}/pull/` +
+      `${diffMetadata.issueNumber}/` +
+      `files#diff-${((diffMetadata.patches !== undefined) ? diffMetadata.patches[fileName] : undefined) ?? ''}`
     summary = summary.split(`[${fileName}]`).join(`[${fileName}](${link})`)
   }
   console.log('Postprocessed summary:\n', summary)
@@ -84,6 +89,8 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
+
+    console.log('diffResponse.data.files:\n', diffResponse.data.files)
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nTHE SUMMERY:\n`
@@ -172,7 +179,8 @@ async function run (): Promise<void> {
       completion = await getOpenAICompletion(comparison, completion, {
         sha: commit.sha,
         issueNumber,
-        repository
+        repository,
+        patches: undefined
       })
     } else {
       completion = 'Not generating summary for merge commits'
