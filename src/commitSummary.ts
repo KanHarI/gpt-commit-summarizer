@@ -63,9 +63,7 @@ function formatGitDiff (filename: string, patch: string): string {
 }
 
 function postprocessSummary (filesList: string[], summary: string, diffMetadata: gitDiffMetadata): string {
-  console.log('Postprocessing summary')
-  console.log('filesList:\n', filesList)
-  console.log('summary:\n', summary)
+  console.log('Preprocessed summary:\n', summary)
   for (const fileName of filesList) {
     const splitFileName = fileName.split('/')
     const shortName = splitFileName[splitFileName.length - 1]
