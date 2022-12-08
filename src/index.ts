@@ -64,6 +64,17 @@ interface gitDiffMetadata {
   commit: Awaited<ReturnType<typeof octokit.repos.getCommit>>
 }
 
+function formatGitDiff (filename: string, patch: string): string {
+  const result = []
+  result.push(`--- a/${filename}`)
+  result.push(`+++ b/${filename}`)
+  for (const line of patch.split('\n')) {
+    result.push(line)
+  }
+  result.push('')
+  return result.join('\n')
+}
+
 function postprocessSummary (filesList: string[], summary: string, diffMetadata: gitDiffMetadata): string {
   console.log('Postprocessing summary')
   console.log('filesList:\n', filesList)
@@ -86,17 +97,10 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
   try {
     const diffResponse = await octokit.request(comparison.url)
     console.log('Fetching diff:', diffResponse.data.diff_url)
-    const rawGitDiff = (await octokit.request(diffResponse.data.diff_url)).data
-    if (rawGitDiff.length > 1000) {
-      throw new Error('Error: Diff is too long')
-    }
 
-    console.log('rawGitDiff:\n', rawGitDiff)
-    console.log('diffResponse:\n', diffResponse)
-    console.log('diffResponse.data.files:\n', diffResponse.data.files)
-
+    const rawGitDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch))
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff as unknown as string}\n\`\`\`\n\nTHE SUMMERY:\n`
+    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff}\n\`\`\`\n\nTHE SUMMERY:\n`
 
     console.log(`OpenAI prompt: ${openAIPrompt}`)
 
