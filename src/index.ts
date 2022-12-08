@@ -21,10 +21,16 @@ This means that the constant \`I_AM_NOT_A_REAL_FILE\` was changed from 20 to 21.
 Note that is is an example and not part of the real diff.
 
 Please write a summary of the changes in the diff.
-Fot example, if we swithced the distance graph calculation from using scipy to numpy, write
+
+Fot example, if in addition to the prevrious example we swithced the distance graph calculation from using 
+scipy to numpy, write
 \`\`\`
 * Switched distance graph calculation from \`scipy\` to \`numpy\`
+* Updated \`I_AM_NOT_A_REAL_FILE\` from 20 to 21 [IAmNotARealFile.ts]
 \`\`\`
+For comments that have 1 or 2 modified files, add the file names in []. If there are more than 2,
+do not include the file names in this way.
+Do not use the characters \`[\` or \`]\` in the summary for other purposes.
 Write every summary comment in a new line.
 Comments should be in a bullet point list, each line starting with a \`*\`.
 The summary should not include comments copied from the code.
