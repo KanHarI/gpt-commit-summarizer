@@ -37,10 +37,10 @@ Readability is top priority. Write only the most important comments about the di
 
 EXAMPLE SUMMARY FORMAT:
 \`\`\`
-* Raised the amount of returned recordings from 10 to 100 [recordings_api.ts], [constants.ts]
-* Fixed a typo in the github action name [gpt-commit-summarizer.yml]
+* Raised the amount of returned recordings from 10 to 100 [packages/server/recordings_api.ts], [packages/server/constants.ts]
+* Fixed a typo in the github action name [.github/workflows/gpt-commit-summarizer.yml]
 * Changed indentation style in all YAMLs
-* Interface the OpenAI API for completions [openai.ts]
+* Interface the OpenAI API for completions [packages/utils/apis/openai.ts]
 * Added more examples of usage to all the READMEs
 \`\`\`
 Do not include parts of the example in your summary. It is given only as an output example.
