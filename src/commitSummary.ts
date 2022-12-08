@@ -47,6 +47,8 @@ Do not include parts of the example in your summary.
 It is given only as an example of appropriate comments.
 `
 
+const MAX_COMMITS_TO_SUMMARIZE = 20
+
 const MODEL_NAME = 'text-davinci-003'
 const TEMPERATURE = 0.5
 const MAX_TOKENS = 512
@@ -78,7 +80,7 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
   return summary
 }
 
-export async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string, diffMetadata: gitDiffMetadata): Promise<string> {
+async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string, diffMetadata: gitDiffMetadata): Promise<string> {
   try {
     const diffResponse = await octokit.request(comparison.url)
     console.log('Fetching diff:', diffResponse.data.diff_url)
@@ -103,4 +105,93 @@ export async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof
     console.error(error)
   }
   return completion
+}
+
+export async function summarizeCommits (
+  issueNumber: number,
+  repository: { owner: { login: string }, name: string }
+): Promise<string[]> {
+  const commitSummaries: string[] = []
+
+  const comments = await octokit.paginate(octokit.issues.listComments, {
+    owner: repository.owner.login,
+    repo: repository.name,
+    issue_number: issueNumber
+  })
+
+  let commitsSummarized = 0
+
+  // For each commit, get the list of files that were modified
+  const commits = await octokit.paginate(octokit.pulls.listCommits, {
+    owner: repository.owner.login,
+    repo: repository.name,
+    pull_number: issueNumber
+  })
+
+  for (const commit of commits) {
+    // Check if a comment for this commit already exists
+    const expectedComment = `GPT summary of ${commit.sha}:`
+    const regex = new RegExp(`^${expectedComment}.*`)
+    const existingComment = comments.find((comment) => regex.test(comment.body ?? ''))
+
+    // If a comment already exists, skip this commit
+    if (existingComment !== undefined) {
+      const currentCommitAbovePrSummary = existingComment.body?.split('PR summary so far:')[0] ?? ''
+      const summaryLines = currentCommitAbovePrSummary.split('\n').slice(1).join('\n')
+      commitSummaries.push(summaryLines)
+      continue
+    }
+
+    // Get the commit object with the list of files that were modified
+    const commitObject = await octokit.repos.getCommit({
+      owner: repository.owner.login,
+      repo: repository.name,
+      ref: commit.sha
+    })
+
+    if (commitObject.data.files === undefined) {
+      throw new Error('Files undefined')
+    }
+
+    const isMergeCommit = (commitObject.data.parents.length !== 1)
+    const parent = commitObject.data.parents[0].sha
+
+    const comparison = await octokit.repos.compareCommits({
+      owner: repository.owner.login,
+      repo: repository.name,
+      base: parent,
+      head: commit.sha
+    })
+
+    let completion = "Error: couldn't generate summary"
+    if (!isMergeCommit) {
+      completion = await getOpenAICompletion(comparison, completion, {
+        sha: commit.sha,
+        issueNumber,
+        repository,
+        commit: commitObject
+      })
+    } else {
+      completion = 'Not generating summary for merge commits'
+    }
+
+    commitSummaries.push(completion)
+
+    // Create a comment on the pull request with the names of the files that were modified in the commit
+    const comment = `GPT summary of ${commit.sha}:\n\n${completion}`
+
+    await octokit.issues.createComment({
+      owner: repository.owner.login,
+      repo: repository.name,
+      issue_number: issueNumber,
+      body: comment,
+      commit_id: commit.sha
+    })
+    commitsSummarized++
+    if (commitsSummarized >= MAX_COMMITS_TO_SUMMARIZE) {
+      console.log('Max commits summarized - if you want to summarize more, rerun the action. This is a protection against spamming the PR with comments')
+      break
+    }
+  }
+  return commitSummaries
 }
