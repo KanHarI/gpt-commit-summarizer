@@ -3,6 +3,7 @@ import { openai } from './openAi'
 import { gitDiffMetadata } from './DiffMetadata'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
+This is a modified git diff version.
 Reminders about the git diff format:
 For every file, there are a few metadata lines, like (for example):
 \`\`\`
@@ -14,8 +15,8 @@ index aadf691..bfef603 100644
 This means that \`lib/index.js\` was modified in this commit. Note that this is only an example.
 Then there is a specifier of the lines that were modified.
 Then there are lines.
-A line that starts with neither is code given for context and better understanding.
-It is not part of the diff.
+A line that starts with \`C\` is code given for context and better understanding.
+If a line starts with \`C\` It is not part of the diff.
 A line that starting with \`-\` means that line was deleted.
 A line starting with \`+\` means it was added.
 After the git diff of the first file, there will be an empty line, and then the git diff of the next file. 
@@ -49,7 +50,13 @@ function formatGitDiff (filename: string, patch: string): string {
   result.push(`--- a/${filename}`)
   result.push(`+++ b/${filename}`)
   for (const line of patch.split('\n')) {
-    result.push(line)
+    let modifiedLine = ' ' + line
+    if (line.length > 0) {
+      if (line[0] !== '+' && line[0] !== '-') {
+        modifiedLine = 'C' + modifiedLine
+      }
+    }
+    result.push(modifiedLine)
   }
   result.push('')
   return result.join('\n')
