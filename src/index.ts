@@ -157,8 +157,8 @@ async function run (): Promise<void> {
     })
 
     const tree = await octokit.git.getTree({
-      owner: 'owner-name',
-      repo: 'repository-name',
+      owner: repository.owner.login,
+      repo: repository.name,
       tree_sha: commitObject.data.commit.tree.sha
     })
 
