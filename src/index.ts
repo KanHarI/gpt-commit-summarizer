@@ -6,14 +6,19 @@ import { PayloadRepository } from '@actions/github/lib/interfaces'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
 Reminders about the git diff format:
-The git diff is a list of files that were modified in a commit and their modifications.
-The first two lines for every modified file looks like this:
---- a/path/to/modified/python/file.py
-+++ b/path/to/modified/python/file.py
-This means that \`path/to/modified/python/file.py\` was modified in this commit.
-A line that starts with neither is code given for context and better understanding. 
+For every file, there are a few metadata lines, like (for example):
+\`\`\`
+diff --git a/lib/index.js b/lib/index.js
+index aadf691..bfef603 100644
+--- a/lib/index.js
++++ b/lib/index.js
+\`\`\`
+This means that \`lib/index.js\` was modified in this commit. Note that this is only an example.
+Then there is a specifier of the lines that were modified.
+Then there are lines.
+A line that starts with neither is code given for context and better understanding.
 It is not part of the diff.
-Please notice that a line that starting with \`-\` means that line was deleted.
+A line that starting with \`-\` means that line was deleted.
 A line starting with \`+\` means it was added.
 After the git diff of the first file, there will be an empty line, and then the git diff of the next file. 
 Do not refer to lines that were not modified in the commit.
@@ -150,6 +155,18 @@ async function run (): Promise<void> {
       repo: repository.name,
       ref: commit.sha
     })
+
+    const tree = await octokit.git.getTree({
+      owner: 'owner-name',
+      repo: 'repository-name',
+      tree_sha: commitObject.data.commit.tree.sha
+    })
+
+    // Find the index hash for the file you are interested in
+    const file = tree.data.tree.find(file => file.path === 'lib/index.js')
+    const indexHash = file?.sha
+
+    console.log('indexHash:\n', indexHash)
 
     if (commitObject.data.files === undefined) {
       throw new Error('Files undefined')
