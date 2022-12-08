@@ -14,13 +14,11 @@ index aadf691..bfef603 100644
 \`\`\`
 This means that \`lib/index.js\` was modified in this commit. Note that this is only an example.
 Then there is a specifier of the lines that were modified.
-Then there are lines.
-A line that starts with \`C\` is code given for context and better understanding.
-If a line starts with \`C\` It is not part of the diff.
-A line that starting with \`-\` means that line was deleted.
 A line starting with \`+\` means it was added.
+A line that starting with \`-\` means that line was deleted.
+A line that starts with neither is code given for context and better understanding. It is not part of the diff.
+
 After the git diff of the first file, there will be an empty line, and then the git diff of the next file. 
-Do not refer to lines that were not modified in the commit.
 
 For comments that refer to 1 or 2 modified files,
 add the file names as [path/to/modified/python/file.py], [path/to/another/file.json]
@@ -50,13 +48,7 @@ function formatGitDiff (filename: string, patch: string): string {
   result.push(`--- a/${filename}`)
   result.push(`+++ b/${filename}`)
   for (const line of patch.split('\n')) {
-    let modifiedLine = ' ' + line
-    if (line.length > 0) {
-      if (line[0] !== '+' && line[0] !== '-') {
-        modifiedLine = 'C' + modifiedLine
-      }
-    }
-    result.push(modifiedLine)
+    result.push(line)
   }
   result.push('')
   return result.join('\n')
@@ -85,7 +77,7 @@ export async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof
     const diffResponse = await octokit.request(comparison.url)
     console.log('Fetching diff:', diffResponse.data.diff_url)
 
-    const rawGitDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch))
+    const rawGitDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff}\n\`\`\`\n\nTHE SUMMERY:\n`
 
