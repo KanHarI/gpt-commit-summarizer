@@ -71,7 +71,7 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
   console.log('filesList', filesList)
   console.log('summary', summary)
   for (const fileName of filesList) {
-    const link = `[${fileName}](https://github.com/${diffMetadata.repository.owner.login}/${diffMetadata.repository.name}/pull/${diffMetadata.issueNumber}/files#diff-${diffMetadata.sha}-${fileName})`
+    const link = `(https://github.com/${diffMetadata.repository.owner.login}/${diffMetadata.repository.name}/pull/${diffMetadata.issueNumber}/files#diff-${diffMetadata.sha}-${fileName})`
     summary = summary.replace(`[${fileName}]`, `[${fileName}](${link})`)
   }
   return summary
