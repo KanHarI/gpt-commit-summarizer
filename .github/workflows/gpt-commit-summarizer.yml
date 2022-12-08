@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: KanHarI/gpt-commit-summarizer@bugfix/fix-raw-diff
+      - uses: KanHarI/gpt-commit-summarizer@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
