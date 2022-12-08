@@ -34,6 +34,7 @@ EXAMPLE SUMMARY FORMAT:
 * Fixed a typo in the github action name [gpt-commit-summarizer.yml]
 * Changed indentation style in all YAMLs
 \`\`\`
+Do not include parts of the example in your summary. It is given only as an output example.
 `
 
 const MAX_COMMITS_TO_SUMMARIZE = 5
