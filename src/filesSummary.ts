@@ -9,13 +9,13 @@ export async function getFilesSummaries (pullNumber: number,
     pull_number: pullNumber
   })
   const modifiedFiles: Record<string, [string, string]> = {}
-  const diff = await octokit.pulls.get({
-    owner: repository.owner.login,
-    repo: repository.name,
-    pull_number: pullNumber
-  })
+  // const diff = await octokit.pulls.get({
+  //   owner: repository.owner.login,
+  //   repo: repository.name,
+  //   pull_number: pullNumber
+  // })
   for (const file of filesChanged.data) {
-    modifiedFiles[file.filename] = [file.sha, diff.data.diff_url]
+    modifiedFiles[file.filename] = [file.sha, file.patch ?? '']
   }
   return modifiedFiles
 }
