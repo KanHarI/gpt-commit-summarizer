@@ -48,11 +48,12 @@ the action will automatically generate a summary of the changes made
 in each commit and post it as a comment on the pull request.
 
 ## Troubleshooting
-In some cases, the OpenAI API may block requests from the IP addresses
-of GitHub's hosted runners. If you encounter this issue, you can try
-using a self-hosted runner to run the gpt-commit-summarizer action.
-This can be done by setting up a runner on a server that you control,
-and then adding the runner to your repository.
+I have heard some unverified reports that, the OpenAI API may block 
+requests from the IP addresses of GitHub's hosted runners. If you
+encounter this issue, you can try using a self-hosted runner to run 
+the gpt-commit-summarizer action. This can be done by setting up a
+runner on a server that you control, and then adding the runner to
+your repository.
 
 To set up a self-hosted runner, you will need to follow these steps:
 
