@@ -1,21 +1,26 @@
 import { octokit } from './octokit'
+import { PayloadRepository } from '@actions/github/lib/interfaces'
 
-// Get list of files changed between the base and the end of the pull request
+async function getReviewComment (pullRequestNumber: number, repository: PayloadRepository): Promise<void> {
+  const reviewComments = await octokit.pulls.listReviewComments({
+    owner: repository.owner.login,
+    repo: repository.name,
+    pull_number: pullRequestNumber
+  })
+  console.log(reviewComments)
+}
+
 export async function getFilesSummaries (pullNumber: number,
-  repository: { owner: { login: string }, name: string }): Promise<Record<string, [string, string]>> {
+  repository: PayloadRepository): Promise<Record<string, [string, string]>> {
   const filesChanged = await octokit.pulls.listFiles({
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: pullNumber
   })
   const modifiedFiles: Record<string, [string, string]> = {}
-  // const diff = await octokit.pulls.get({
-  //   owner: repository.owner.login,
-  //   repo: repository.name,
-  //   pull_number: pullNumber
-  // })
   for (const file of filesChanged.data) {
     modifiedFiles[file.filename] = [file.sha, file.patch ?? '']
   }
+  await getReviewComment(pullNumber, repository)
   return modifiedFiles
 }
