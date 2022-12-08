@@ -1,8 +1,8 @@
-import { Octokit } from '@octokit/rest'
 import { context } from '@actions/github'
 
 import { Configuration, OpenAIApi } from 'openai'
 import { PayloadRepository } from '@actions/github/lib/interfaces'
+import { octokit } from './octokit'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
 Reminders about the git diff format:
@@ -47,10 +47,6 @@ Do not include parts of the example in your summary. It is given only as an outp
 `
 
 const MAX_COMMITS_TO_SUMMARIZE = 20
-
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
-})
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY
