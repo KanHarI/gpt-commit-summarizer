@@ -163,6 +163,7 @@ async function run (): Promise<void> {
       tree_sha: commitObject.data.commit.tree.sha
     })
 
+    console.log('tree.data:\n', tree.data)
     // Find the index hash for the file you are interested in
     const file = tree.data.tree.find(file => file.path === 'lib/index.js')
     const indexHash = file?.sha
