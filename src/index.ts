@@ -1,8 +1,7 @@
 import { context } from '@actions/github'
 
 import { octokit } from './octokit'
-import {getOpenAICompletion} from "./commitSummary";
-
+import { getOpenAICompletion } from './commitSummary'
 
 const MAX_COMMITS_TO_SUMMARIZE = 20
 

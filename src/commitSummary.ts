@@ -1,6 +1,6 @@
-import {octokit} from "./octokit";
-import {openai} from "./openAi";
-import {gitDiffMetadata} from "./DiffMetadata";
+import { octokit } from './octokit'
+import { openai } from './openAi'
+import { gitDiffMetadata } from './DiffMetadata'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
 Reminders about the git diff format:
@@ -44,7 +44,6 @@ EXAMPLE SUMMARY FORMAT:
 Do not include parts of the example in your summary. It is given only as an output example.
 `
 
-
 function formatGitDiff (filename: string, patch: string): string {
   const result = []
   result.push(`--- a/${filename}`)
@@ -73,7 +72,6 @@ function postprocessSummary (filesList: string[], summary: string, diffMetadata:
   console.log('Postprocessed summary:\n', summary)
   return summary
 }
-
 
 export async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string, diffMetadata: gitDiffMetadata): Promise<string> {
   try {
