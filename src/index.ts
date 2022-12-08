@@ -64,7 +64,7 @@ function postprocessSummary (filesList: string[], summary: string): string {
   console.log('filesList', filesList)
   console.log('summary', summary)
   for (const fileName of filesList) {
-    summary.replace(`[${fileName}]`, '[$' + fileName + '$]')
+    summary = summary.replace(`[${fileName}]`, '[$' + fileName + '$]')
   }
   return summary
 }
