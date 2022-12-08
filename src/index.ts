@@ -2,37 +2,51 @@ import { Octokit } from '@octokit/rest'
 import { context } from '@actions/github'
 
 import { Configuration, OpenAIApi } from 'openai'
+import { PayloadRepository } from '@actions/github/lib/interfaces'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
-The git diff is not in the usual format, but in a very close format.
-Please notice that a line that starting with \`-\` means that line was deleted.
+Reminders about the git diff format:
+For every file, there are a few metadata lines, like (for example):
+\`\`\`
+diff --git a/lib/index.js b/lib/index.js
+index aadf691..bfef603 100644
+--- a/lib/index.js
++++ b/lib/index.js
+\`\`\`
+This means that \`lib/index.js\` was modified in this commit. Note that this is only an example.
+Then there is a specifier of the lines that were modified.
+Then there are lines.
+A line that starts with neither is code given for context and better understanding.
+It is not part of the diff.
+A line that starting with \`-\` means that line was deleted.
 A line starting with \`+\` means it was added.
-A line that starts with neither is code given for context and better understanding. It is not part of the diff.
-An example of the diff format:
-\`\`\`
---- a/packages/utils/math/IAmNotARealFile.ts
-+++ b/packages/utils/math/IAmNotARealFile.ts
-@@ -1 +1 @@
--export const I_AM_NOT_A_REAL_FILE = 20;
-+export const I_AM_NOT_A_REAL_FILE = 21;
-export const ANOTHER_CONSTANT = 40;
-\`\`\`
-This means that the constant \`I_AM_NOT_A_REAL_FILE\` was changed from 20 to 21.
-Note that is is an example and not part of the real diff.
+After the git diff of the first file, there will be an empty line, and then the git diff of the next file. 
+Do not refer to lines that were not modified in the commit.
 
-Please write a summary of the changes in the diff.
-Fot example, if we swithced the distance graph calculation from using scipy to numpy, write
-\`\`\`
-* Switched distance graph calculation from \`scipy\` to \`numpy\`
-\`\`\`
+For comments that refer to 1 or 2 modified files,
+add the file names as [path/to/modified/python/file.py], [path/to/another/file.json]
+at the end of the comment.
+If there are more than two, do not include the file names in this way.
+Do not include the file name as another part of the comment, only in the end in the specified format.
+Do not use the characters \`[\` or \`]\` in the summary for other purposes.
 Write every summary comment in a new line.
 Comments should be in a bullet point list, each line starting with a \`*\`.
 The summary should not include comments copied from the code.
 The output should be easily readable. When in doubt, write less comments and not more.
 Readability is top priority. Write only the most important comments about the diff.
+
+EXAMPLE SUMMARY FORMAT:
+\`\`\`
+* Raised the amount of returned recordings from 10 to 100 [recordings_api.ts], [constants.ts]
+* Fixed a typo in the github action name [gpt-commit-summarizer.yml]
+* Changed indentation style in all YAMLs
+* Interface the OpenAI API for completions [openai.ts]
+* Added more examples of usage to all the READMEs
+\`\`\`
+Do not include parts of the example in your summary. It is given only as an output example.
 `
 
-const MAX_COMMITS_TO_SUMMARIZE = 5
+const MAX_COMMITS_TO_SUMMARIZE = 20
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
@@ -43,26 +57,44 @@ const configuration = new Configuration({
 })
 const openai = new OpenAIApi(configuration)
 
-function formatGitDiff (filename: string, patch: string): string {
-  const result = []
-  result.push(`--- a/${filename}`)
-  result.push(`+++ b/${filename}`)
-  for (const line of patch.split('\n')) {
-    result.push(line)
-  }
-  result.push('')
-  return result.join('\n')
+interface gitDiffMetadata {
+  sha: string
+  issueNumber: number
+  repository: PayloadRepository
+  commit: Awaited<ReturnType<typeof octokit.repos.getCommit>>
 }
 
-async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string): Promise<string> {
+function postprocessSummary (filesList: string[], summary: string, diffMetadata: gitDiffMetadata): string {
+  console.log('Postprocessing summary')
+  console.log('filesList:\n', filesList)
+  console.log('summary:\n', summary)
+  for (const fileName of filesList) {
+    const splitFileName = fileName.split('/')
+    const shortName = splitFileName[splitFileName.length - 1]
+    const link = 'https://github.com/' +
+      `${diffMetadata.repository.owner.login}/` +
+      `${diffMetadata.repository.name}/blob/` +
+      `${diffMetadata.commit.data.sha}/` +
+      `${fileName}`
+    summary = summary.split(`[${fileName}]`).join(`[${shortName}](${link})`)
+  }
+  console.log('Postprocessed summary:\n', summary)
+  return summary
+}
+
+async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string, diffMetadata: gitDiffMetadata): Promise<string> {
   try {
     const diffResponse = await octokit.request(comparison.url)
+    const rawGitDiff = (await octokit.request(diffResponse.data.diff_url)).data
+
+    console.log('rawGitDiff:\n', rawGitDiff)
+    console.log('diffResponse:\n', diffResponse)
+    console.log('diffResponse.data.files:\n', diffResponse.data.files)
 
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const commitRawDiff = diffResponse.data.files.map((file: any) => formatGitDiff(file.filename, file.patch)).join('\n')
+    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff as unknown as string}\n\`\`\`\n\nTHE SUMMERY:\n`
 
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    const openAIPrompt = `${OPEN_AI_PRIMING}\n\nThe git diff is:\n\`\`\`\n${commitRawDiff}\n\`\`\`\n\nThe summary is:\n`
+    console.log(`OpenAI prompt: ${openAIPrompt}`)
 
     const response = await openai.createCompletion({
       model: 'text-davinci-003',
@@ -72,7 +104,7 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
     })
 
     if (response.data.choices !== undefined && response.data.choices.length > 0) {
-      completion = response.data.choices[0].text ?? "Error: couldn't generate summary"
+      completion = postprocessSummary(diffResponse.data.files.map((file: any) => file.filename), response.data.choices[0].text ?? "Error: couldn't generate summary", diffMetadata)
     }
   } catch (error) {
     console.error(error)
@@ -127,6 +159,19 @@ async function run (): Promise<void> {
       ref: commit.sha
     })
 
+    // const tree = await octokit.git.getTree({
+    //   owner: repository.owner.login,
+    //   repo: repository.name,
+    //   tree_sha: commitObject.data.commit.tree.sha
+    // })
+    //
+    // console.log('tree.data:\n', tree.data)
+    // // Find the index hash for the file you are interested in
+    // const file = tree.data.tree.find(file => file.path === 'lib/index.js')
+    // const indexHash = file?.sha
+    //
+    // console.log('indexHash:\n', indexHash)
+
     if (commitObject.data.files === undefined) {
       throw new Error('Files undefined')
     }
@@ -143,7 +188,12 @@ async function run (): Promise<void> {
 
     let completion = "Error: couldn't generate summary"
     if (!isMergeCommit) {
-      completion = await getOpenAICompletion(comparison, completion)
+      completion = await getOpenAICompletion(comparison, completion, {
+        sha: commit.sha,
+        issueNumber,
+        repository,
+        commit: commitObject
+      })
     } else {
       completion = 'Not generating summary for merge commits'
     }
