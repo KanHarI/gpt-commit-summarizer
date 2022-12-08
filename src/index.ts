@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/rest'
 import { context } from '@actions/github'
 
 import { Configuration, OpenAIApi } from 'openai'
+import { PayloadRepository } from '@actions/github/lib/interfaces'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
 THE GIT DIFF FORMAT:
@@ -48,6 +49,12 @@ const configuration = new Configuration({
 })
 const openai = new OpenAIApi(configuration)
 
+interface gitDiffMetadata {
+  sha: string
+  issueNumber: number
+  repository: PayloadRepository
+}
+
 function formatGitDiff (filename: string, patch: string): string {
   const result = []
   result.push(`--- a/${filename}`)
@@ -59,17 +66,18 @@ function formatGitDiff (filename: string, patch: string): string {
   return result.join('\n')
 }
 
-function postprocessSummary (filesList: string[], summary: string): string {
+function postprocessSummary (filesList: string[], summary: string, diffMetadata: gitDiffMetadata): string {
   console.log('Postprocessing summary')
   console.log('filesList', filesList)
   console.log('summary', summary)
   for (const fileName of filesList) {
-    summary = summary.replace(`[${fileName}]`, '[$' + fileName + '$]')
+    const link = `[${fileName}](https://github.com/${diffMetadata.repository.owner.login}/${diffMetadata.repository.name}/pull/${diffMetadata.issueNumber}/files#diff-${diffMetadata.sha}-${fileName})`
+    summary = summary.replace(`[${fileName}]`, `[${fileName}](${link})`)
   }
   return summary
 }
 
-async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string): Promise<string> {
+async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octokit.repos.compareCommits>>, completion: string, diffMetadata: gitDiffMetadata): Promise<string> {
   try {
     const diffResponse = await octokit.request(comparison.url)
 
@@ -89,7 +97,7 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
     })
 
     if (response.data.choices !== undefined && response.data.choices.length > 0) {
-      completion = postprocessSummary(diffResponse.data.files.map((file: any) => file.filename), response.data.choices[0].text ?? "Error: couldn't generate summary")
+      completion = postprocessSummary(diffResponse.data.files.map((file: any) => file.filename), response.data.choices[0].text ?? "Error: couldn't generate summary", diffMetadata)
     }
   } catch (error) {
     console.error(error)
@@ -160,7 +168,11 @@ async function run (): Promise<void> {
 
     let completion = "Error: couldn't generate summary"
     if (!isMergeCommit) {
-      completion = await getOpenAICompletion(comparison, completion)
+      completion = await getOpenAICompletion(comparison, completion, {
+        sha: commit.sha,
+        issueNumber,
+        repository
+      })
     } else {
       completion = 'Not generating summary for merge commits'
     }
