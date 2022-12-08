@@ -193,6 +193,7 @@ async function run (): Promise<void> {
 
     let completion = "Error: couldn't generate summary"
     if (!isMergeCommit) {
+      console.log(`completion: ${completion}`)
       completion = await getOpenAICompletion(comparison, completion)
     } else {
       completion = 'Not generating summary for merge commits'
