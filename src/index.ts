@@ -4,12 +4,23 @@ import { context } from '@actions/github'
 import { Configuration, OpenAIApi } from 'openai'
 
 const OPEN_AI_PRIMING = `You are an expert programmer, and you are trying to summarize a git diff.
+THE GIT DIFF FORMAT:
+The git diff is a list of files that were modified in a commit and their modifications.
+The first two lines for every modified file looks like this:
+--- a/path/to/modified/python/file.py
++++ b/path/to/modified/python/file.py
+This means that \`path/to/modified/python/file.py\` was modified in this commit.
+A line that starts with neither is code given for context and better understanding. 
+It is not part of the diff.
 Please notice that a line that starting with \`-\` means that line was deleted.
 A line starting with \`+\` means it was added.
-A line that starts with neither is code given for context and better understanding. It is not part of the diff.
+After the git diff of the first file, there will be an empty line, and then the git diff of the next file. 
+Do not refer to lines that were not modified in the commit.
 
-For comments that refer to 1 or 2 modified files, add the file names as [file1], [file2] after the comments.
-If there are more than 2, do not include the file names in this way.
+For comments that refer to 1 or 2 modified files,
+add the file names as [path/to/modified/python/file.py], [path/to/another/file.json]
+at the end of the comment.
+If there are more than two, do not include the file names in this way.
 Do not use the characters \`[\` or \`]\` in the summary for other purposes.
 Write every summary comment in a new line.
 Comments should be in a bullet point list, each line starting with a \`*\`.
@@ -17,69 +28,12 @@ The summary should not include comments copied from the code.
 The output should be easily readable. When in doubt, write less comments and not more.
 Readability is top priority. Write only the most important comments about the diff.
 
-EXAMPLE GIT DIFF:
+EXAMPLE SUMMARY FORMAT:
 \`\`\`
---- a/packages/server/src/recordings_api.ts
-+++ b/packages/server/src/recordings_api.ts
-@@ -26,6 +26,8 @@ import { cache_5min, no_cache } from "./cache_control";
- import { GLOBAL_EXPRESS_PRISMA_CLIENT } from "./prisma_client";
- import { GLOBAL_EXPRESS_SLACK_NOTIFIER } from "./slack";
- 
-+const NUM_RECORDINGS = 100;
-+
- export function add_recording_functionality_to_app(app: Application) {
-   // "recording" might scare users seeing it
-   app.post(
-@@ -189,9 +191,9 @@ export function add_recording_functionality_to_app(app: Application) {
-     "/list-recordings",
-     no_cache(
-       require_admin(async (req: Request, res: Response) => {
--        const last_up_to_10_recordings =
-+        const last_recordings =
-           await GLOBAL_EXPRESS_PRISMA_CLIENT.workoutRecording.findMany({
--            take: 10,
-+            take: NUM_RECORDINGS,
-             orderBy: {
-               id: "desc",
-             },
-@@ -205,13 +207,13 @@ export function add_recording_functionality_to_app(app: Application) {
-               },
-             },
-           });
--        if (last_up_to_10_recordings.length === 0) {
-+        if (last_recordings.length === 0) {
-           res.status(500);
-           res.json({ err: "Cannot find recordings" });
-           return;
-         }
-         const response: Array<RecordingMetadata> = [];
--        for (const recording of last_up_to_10_recordings) {
-+        for (const recording of last_recordings) {
-           response.push({
-             user_id: recording.workout.user.id,
-             workout_id: recording.workout.id,
-
---- a/.github/workflows/gpt-commit-summarizer.yml
-+++ b/.github/workflows/gpt-commit-summarizer.yml
-@@ -12,7 +12,7 @@ jobs:
-     runs-on: self-hosted
- 
-     steps:
--      - uses: KanHarI/gpt-commit-summrizer@master
-+      - uses: KanHarI/gpt-commit-summarizer@master
-         env:
-           GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-           OPENAI_API_KEY: \${{ secrets.OPENAI_API_KEY }}
-
-\`\`\`
-
-EXAMPLE SUMMARY:
-\`\`\`
-* Raised the amount of returned recordings from 10 to 100 [recordings_api.ts]
+* Raised the amount of returned recordings from 10 to 100 [recordings_api.ts], [constants.ts]
 * Fixed a typo in the github action name [gpt-commit-summarizer.yml]
+* Changed indentation style in all YAMLs
 \`\`\`
-
-These were examples and are not part of the git diff to be summarized.
 `
 
 const MAX_COMMITS_TO_SUMMARIZE = 5
