@@ -127,8 +127,7 @@ export async function getFilesSummaries (pullNumber: number,
       headCommitSha
     }/${
       modifiedFile
-    }):
-    }\n${fileAnalysisAndSummary}`
+    }):\n${fileAnalysisAndSummary}`
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
