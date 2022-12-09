@@ -1,5 +1,6 @@
 name: GPT Commits summarizer
 # Summary: This action will write a comment about every commit in a pull request, containing major points
+# Add a comment
 
 on:
   pull_request:
@@ -10,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: KanHarI/gpt-commit-summarizer@feature/pr-summaries-p3
+      - uses: KanHarI/gpt-commit-summarizer@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
