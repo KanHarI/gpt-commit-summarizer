@@ -13,4 +13,4 @@ A line starting with \`+\` means it was added.
 A line that starting with \`-\` means that line was deleted.
 A line that starts with neither \`+\` nor \`-\` is code given for context and better understanding. 
 It is not part of the diff.
-`
+`;
