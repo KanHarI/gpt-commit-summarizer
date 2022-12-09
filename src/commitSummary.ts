@@ -1,5 +1,5 @@
 import { octokit } from './octokit'
-import { MAX_OPEN_AI_QUERY_LENGTH, openai } from './openAi'
+import { MAX_OPEN_AI_QUERY_LENGTH, MAX_TOKENS, MODEL_NAME, openai, TEMPERATURE } from './openAi'
 import { gitDiffMetadata } from './DiffMetadata'
 import { SHARED_PROMPT } from './sharedPrompt'
 
@@ -34,10 +34,6 @@ It is given only as an example of appropriate comments.
 `
 
 const MAX_COMMITS_TO_SUMMARIZE = 20
-
-const MODEL_NAME = 'text-davinci-003'
-const TEMPERATURE = 0.5
-const MAX_TOKENS = 512
 
 function formatGitDiff (filename: string, patch: string): string {
   const result = []

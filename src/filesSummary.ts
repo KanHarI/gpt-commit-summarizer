@@ -1,9 +1,39 @@
 import { octokit } from './octokit'
 import { PayloadRepository } from '@actions/github/lib/interfaces'
 import { SHARED_PROMPT } from './sharedPrompt'
+import { MAX_OPEN_AI_QUERY_LENGTH, MAX_TOKENS, MODEL_NAME, openai, TEMPERATURE } from './openAi'
 
 const OPEN_AI_PROMPT = `${SHARED_PROMPT}
+The following is a git diff of a single file.
+Please summarize it in a comment, describing the changes made in the diff in high level.
+Do it in the following way:
+Write \`ANALYSIS:\` and then write a detailed description of all changes made in the diff.
+Then write \`SUMMARY:\` and then write a summary of the changes made in the diff, as a bullet point list.
+Every bullet point should start with a \`*\`.
 `
+
+// const MAX_FILES_TO_SUMMARIZE = 1
+
+async function getOpenAISummaryForFile (filename: string, patch: string): Promise<string> {
+  const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nANALYSIS:\n`
+  console.log(`OpenAI prompt: ${openAIPrompt}`)
+
+  if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
+    throw new Error('OpenAI query too big')
+  }
+
+  const response = await openai.createCompletion({
+    model: MODEL_NAME,
+    prompt: openAIPrompt,
+    max_tokens: MAX_TOKENS,
+    temperature: TEMPERATURE
+  })
+  console.log('Raw openAI response:', response.data)
+  if (response.data.choices !== undefined && response.data.choices.length > 0) {
+    return response.data.choices[0].text ?? "Error: couldn't generate summary"
+  }
+  return "Error: couldn't generate summary"
+}
 
 async function getReviewComments (pullRequestNumber: number, repository: PayloadRepository): Promise<Array<{ body: string }>> {
   const reviewComments = (await octokit.paginate(octokit.pulls.listReviewComments, {
@@ -42,7 +72,11 @@ export async function getFilesSummaries (pullNumber: number,
     if (isFileAlreadySummarized) {
       continue
     }
+    const fileAnalysisAndSummary = await getOpenAISummaryForFile(modifiedFile, modifiedFiles[modifiedFile].diff)
+    console.log(fileAnalysisAndSummary)
     console.log(OPEN_AI_PROMPT)
-    return result
+    result[modifiedFile] = fileAnalysisAndSummary
+    break
   }
+  return result
 }
