@@ -68,7 +68,8 @@ export async function getFilesSummaries (pullNumber: number,
   for (const file of filesChanged.data) {
     console.log('file:\n', file)
     const originSha = baseCommit.data.files?.find((baseCommitFile) => baseCommitFile.filename === file.filename)?.sha ?? ''
-    modifiedFiles[file.filename] = { sha: file.sha, originSha, diff: file.patch ?? '', position: 0, filename: file.filename }
+    const firstModifiedLineAfterCommit = Number(file.patch?.split('+')[1]?.split(',')[0]) ?? 0
+    modifiedFiles[file.filename] = { sha: file.sha, originSha, diff: file.patch ?? '', position: firstModifiedLineAfterCommit, filename: file.filename }
   }
   const existingReviewSummaries = await getReviewComments(pullNumber, repository)
   const result: Record<string, string> = {}
