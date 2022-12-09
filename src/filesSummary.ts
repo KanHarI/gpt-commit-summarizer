@@ -11,7 +11,7 @@ import {
 import { SHARED_PROMPT } from "./sharedPrompt";
 
 const linkRegex =
-  /\[[a-f0-9]{6}\]\(https:\/\/github\.com\/.*?#([a-f0-9]{40})\)/;
+  /\[(?:[a-f0-9]{6}|None)\]\(https:\/\/github\.com\/.*?#([a-f0-9]{40}|None)\)/;
 
 export function preprocessCommitMessage(commitMessage: string): string {
   let match = commitMessage.match(linkRegex);
