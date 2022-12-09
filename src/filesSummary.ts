@@ -65,7 +65,8 @@ export async function getFilesSummaries (pullNumber: number,
   const baseCommitTree = await octokit.git.getTree({
     owner: repository.owner.login,
     repo: repository.name,
-    tree_sha: baseCommitSha
+    tree_sha: baseCommitSha,
+    recursive: 'true'
   })
   const modifiedFiles: Record<string, { sha: string, originSha: string, diff: string, position: number, filename: string }> = {}
   for (const file of filesChanged.data) {
