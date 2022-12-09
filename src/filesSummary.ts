@@ -35,14 +35,14 @@ async function getOpenAISummaryForFile (filename: string, patch: string): Promis
   return "Error: couldn't generate summary"
 }
 
-async function getReviewComments (pullRequestNumber: number, repository: PayloadRepository): Promise<Array<{ body: string }>> {
+async function getReviewComments (pullRequestNumber: number, repository: PayloadRepository): Promise<string[]> {
   const reviewComments = (await octokit.paginate(octokit.pulls.listReviewComments, {
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: pullRequestNumber
   }) as unknown as Awaited<ReturnType<typeof octokit.pulls.listReviewComments>>)
   console.log('reviewComments:\n', reviewComments)
-  return reviewComments.data
+  return (reviewComments as unknown as Array<{ body?: string }>).map((reviewComment) => reviewComment.body ?? '')
 }
 
 export async function getFilesSummaries (pullNumber: number,
@@ -62,8 +62,8 @@ export async function getFilesSummaries (pullNumber: number,
     let isFileAlreadySummarized = false
     const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].sha}:`
     for (const reviewSummary of existingReviewSummaries) {
-      if (reviewSummary.body?.includes(expectedComment)) {
-        const summary = reviewSummary.body?.split('\n').slice(1).join('\n')
+      if (reviewSummary.includes(expectedComment)) {
+        const summary = reviewSummary.split('\n').slice(1).join('\n')
         result[modifiedFile] = summary
         isFileAlreadySummarized = true
         break
