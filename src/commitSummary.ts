@@ -197,7 +197,7 @@ export async function summarizeCommits (
     }
   }
   const headCommitShaAndSummary = commitSummaries.find(([sha, summary]) => sha === headCommit)
-  if (needsToSummarizeHead && headCommitShaAndSummary !== undefined) {
+  if (needsToSummarizeHead && (headCommitShaAndSummary !== undefined)) {
     let prSummary = 'Error summarizing PR'
     try {
       prSummary = await summarizePr(modifiedFilesSummaries, commitSummaries)
