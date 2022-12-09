@@ -124,6 +124,7 @@ export async function summarizeCommits (
 
   const headCommit = pull.data.head.sha
 
+  let needsToSummarizeHead = true
   for (const commit of commits) {
     // Check if a comment for this commit already exists
     const expectedComment = `GPT summary of ${commit.sha}:`
@@ -136,6 +137,10 @@ export async function summarizeCommits (
       const summaryLines = currentCommitAbovePrSummary.split('\n').slice(1).join('\n')
       commitSummaries.push([commit.sha, summaryLines])
       continue
+    }
+
+    if (commit.sha === headCommit) {
+      needsToSummarizeHead = false
     }
 
     // Get the commit object with the list of files that were modified
@@ -192,7 +197,7 @@ export async function summarizeCommits (
     }
   }
   const headCommitShaAndSummary = commitSummaries.find(([sha, summary]) => sha === headCommit)
-  if (headCommitShaAndSummary !== undefined) {
+  if (needsToSummarizeHead && headCommitShaAndSummary !== undefined) {
     let prSummary = 'Error summarizing PR'
     try {
       prSummary = await summarizePr(modifiedFilesSummaries, commitSummaries)
