@@ -38,7 +38,9 @@ export async function summarizePr(
   const filesString = Object.entries(fileSummaries)
     .map(([filename, summary]) => `File ${filename}:\n${summary}`)
     .join("\n");
-  const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE COMMIT SUMMARIES:\n\`\`\`\n${commitsString}\n\`\`\`\n\nTHE FILE SUMMARIES:\n\`\`\`\n${filesString}\n\`\`\`\n\nTHE PULL REQUEST SUMMARY:\n`;
+  const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE COMMIT SUMMARIES:\n\`\`\`\n${commitsString}\n\`\`\`\n\nTHE FILE SUMMARIES:\n\`\`\`\n${filesString}\n\`\`\`\n\n
+  Reminder - write only the most important points. No more than a few bullet points.
+  THE PULL REQUEST SUMMARY:\n`;
   console.log(`OpenAI for PR summary prompt: ${openAIPrompt}`);
 
   if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
