@@ -38,7 +38,7 @@ async function getOpenAISummaryForFile(
 ): Promise<string> {
   try {
     const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nSUMMARY:\n`;
-    console.log(`OpenAI file summary prompt: ${openAIPrompt}`);
+    console.log(`OpenAI file summary prompt for ${filename}:\n${openAIPrompt}`);
 
     if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
       throw new Error("OpenAI query too big");
@@ -50,7 +50,6 @@ async function getOpenAISummaryForFile(
       max_tokens: MAX_TOKENS,
       temperature: TEMPERATURE,
     });
-    console.log("Raw openAI response:", response.data);
     if (
       response.data.choices !== undefined &&
       response.data.choices.length > 0
@@ -77,7 +76,6 @@ async function getReviewComments(
       pull_number: pullRequestNumber,
     }
   )) as unknown as Awaited<ReturnType<typeof octokit.pulls.listReviewComments>>;
-  console.log("reviewComments:\n", reviewComments);
   return (
     reviewComments as unknown as Array<{ body?: string; id: number }>
   ).map((reviewComment) => [
@@ -119,12 +117,9 @@ export async function getFilesSummaries(
     }
   > = {};
   for (const file of filesChanged.data) {
-    console.log("file:\n", file);
-    console.log("baseCommitTree.data:\n", baseCommitTree.data);
     const originSha =
       baseCommitTree.data.tree.find((tree: any) => tree.path === file.filename)
         ?.sha ?? "None";
-    console.log("originSha:\n", originSha);
     const firstModifiedLineAfterCommit =
       Number(file.patch?.split("+")[1]?.split(",")[0]) ?? 0;
     modifiedFiles[file.filename] = {

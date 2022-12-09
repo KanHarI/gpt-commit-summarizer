@@ -21,14 +21,7 @@ async function run(): Promise<void> {
     repository
   );
 
-  console.log("Changed Files: ", modifiedFilesSummaries);
-
-  const commitSummaries = await summarizeCommits(
-    issueNumber,
-    repository,
-    modifiedFilesSummaries
-  );
-  console.log(commitSummaries);
+  await summarizeCommits(issueNumber, repository, modifiedFilesSummaries);
 }
 
 run().catch((error) => {

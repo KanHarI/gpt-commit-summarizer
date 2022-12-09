@@ -58,7 +58,6 @@ function postprocessSummary(
   summary: string,
   diffMetadata: gitDiffMetadata
 ): string {
-  console.log("Preprocessed summary:\n", summary);
   for (const fileName of filesList) {
     const splitFileName = fileName.split("/");
     const shortName = splitFileName[splitFileName.length - 1];
@@ -70,7 +69,6 @@ function postprocessSummary(
       `${fileName}`;
     summary = summary.split(`[${fileName}]`).join(`[${shortName}](${link})`);
   }
-  console.log("Postprocessed summary:\n", summary);
   return summary;
 }
 
@@ -81,7 +79,6 @@ async function getOpenAICompletion(
 ): Promise<string> {
   try {
     const diffResponse = await octokit.request(comparison.url);
-    console.log("Fetching diff:", diffResponse.data.diff_url);
 
     const rawGitDiff = diffResponse.data.files
       .map((file: any) => formatGitDiff(file.filename, file.patch))
@@ -89,7 +86,9 @@ async function getOpenAICompletion(
     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     const openAIPrompt = `${OPEN_AI_PRIMING}\n\nTHE GIT DIFF TO BE SUMMARIZED:\n\`\`\`\n${rawGitDiff}\n\`\`\`\n\nTHE SUMMERY:\n`;
 
-    console.log(`OpenAI prompt: ${openAIPrompt}`);
+    console.log(
+      `OpenAI prompt for commit ${diffMetadata.commit.data.sha}: ${openAIPrompt}`
+    );
 
     if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
       throw new Error("OpenAI query too big");
