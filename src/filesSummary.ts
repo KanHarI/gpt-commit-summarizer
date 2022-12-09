@@ -51,9 +51,10 @@ export async function getFilesSummaries (pullNumber: number,
     repo: repository.name,
     pull_number: pullNumber
   })
-  const modifiedFiles: Record<string, { sha: string, diff: string }> = {}
+  const modifiedFiles: Record<string, { sha: string, diff: string, position: number, filename: string }> = {}
   for (const file of filesChanged.data) {
-    modifiedFiles[file.filename] = { sha: file.sha, diff: file.patch ?? '' }
+    console.log('file:\n', file)
+    modifiedFiles[file.filename] = { sha: file.sha, diff: file.patch ?? '', position: 0, filename: file.filename }
   }
   const existingReviewSummaries = await getReviewComments(pullNumber, repository)
   const result: Record<string, string> = {}
@@ -72,9 +73,16 @@ export async function getFilesSummaries (pullNumber: number,
       continue
     }
     const fileAnalysisAndSummary = await getOpenAISummaryForFile(modifiedFile, modifiedFiles[modifiedFile].diff)
-    console.log(fileAnalysisAndSummary)
-    console.log(OPEN_AI_PROMPT)
     result[modifiedFile] = fileAnalysisAndSummary
+    await octokit.pulls.createReviewComment({
+      owner: repository.owner.login,
+      repo: repository.name,
+      pull_number: pullNumber,
+      commit_id: modifiedFiles[modifiedFile].sha,
+      path: modifiedFiles[modifiedFile].filename,
+      line: modifiedFiles[modifiedFile].position,
+      body: `GPT summary of ${modifiedFiles[modifiedFile].sha}:\n${fileAnalysisAndSummary}`
+    })
     break
   }
   return result
