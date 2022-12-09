@@ -32,7 +32,7 @@ export async function summarizePr(
   const commitsString = Array.from(commitSummaries.entries())
     .map(
       ([idx, [, summary]]) =>
-        `Commit #${idx}:\n${preprocessCommitMessage(summary)}`
+        `Commit #${idx + 1}:\n${preprocessCommitMessage(summary)}`
     )
     .join("\n");
   const filesString = Object.entries(fileSummaries)
