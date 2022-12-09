@@ -7,7 +7,7 @@ Please summarize the pull request. Write your response in bullet points, startin
 Write a high level description. Do not repeat the commit summaries or the file summaries.
 `
 
-const linkRegex = /\[.*?\]\(https:\/\/github\.com\/.*?[a-zA-Z0-f]{40}\/(.*)\)/
+const linkRegex = /\[.*?\]\(https:\/\/github\.com\/.*?[a-zA-Z0-f]{40}\/(.*?)\)/
 
 function preprocessCommitMessage (commitMessage: string): string {
   let match = commitMessage.match(linkRegex)
