@@ -11,7 +11,7 @@ Write \`SUMMARY:\` and then write a summary of the changes made in the diff, as 
 Every bullet point should start with a \`*\`.
 `
 
-// const MAX_FILES_TO_SUMMARIZE = 1
+const MAX_FILES_TO_SUMMARIZE = 10
 
 async function getOpenAISummaryForFile (filename: string, patch: string): Promise<string> {
   try {
@@ -79,6 +79,7 @@ export async function getFilesSummaries (pullNumber: number,
   }
   const existingReviewSummaries = await getReviewComments(pullNumber, repository)
   const result: Record<string, string> = {}
+  let summarizedFiles = 0
   for (const modifiedFile of Object.keys(modifiedFiles)) {
     let isFileAlreadySummarized = false
     const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:`
@@ -104,7 +105,10 @@ export async function getFilesSummaries (pullNumber: number,
       line: modifiedFiles[modifiedFile].position,
       body: `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:\n${fileAnalysisAndSummary}`
     })
-    break
+    summarizedFiles += 1
+    if (summarizedFiles >= MAX_FILES_TO_SUMMARIZE) {
+      break
+    }
   }
   return result
 }

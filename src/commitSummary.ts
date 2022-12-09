@@ -2,6 +2,7 @@ import { octokit } from './octokit'
 import { MAX_OPEN_AI_QUERY_LENGTH, MAX_TOKENS, MODEL_NAME, openai, TEMPERATURE } from './openAi'
 import { gitDiffMetadata } from './DiffMetadata'
 import { SHARED_PROMPT } from './sharedPrompt'
+import { summarizePr } from './summarizePr'
 
 const OPEN_AI_PRIMING = `${SHARED_PROMPT}
 After the git diff of the first file, there will be an empty line, and then the git diff of the next file. 
@@ -94,15 +95,22 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
 }
 
 export async function summarizeCommits (
-  issueNumber: number,
-  repository: { owner: { login: string }, name: string }
-): Promise<string[]> {
-  const commitSummaries: string[] = []
+  pullNumber: number,
+  repository: { owner: { login: string }, name: string },
+  modifiedFilesSummaries: Record<string, string>
+): Promise<Array<[string, string]>> {
+  const commitSummaries: Array<[string, string]> = []
+
+  const pull = await octokit.pulls.get({
+    owner: repository.owner.login,
+    repo: repository.name,
+    pull_number: pullNumber
+  })
 
   const comments = await octokit.paginate(octokit.issues.listComments, {
     owner: repository.owner.login,
     repo: repository.name,
-    issue_number: issueNumber
+    issue_number: pullNumber
   })
 
   let commitsSummarized = 0
@@ -111,8 +119,10 @@ export async function summarizeCommits (
   const commits = await octokit.paginate(octokit.pulls.listCommits, {
     owner: repository.owner.login,
     repo: repository.name,
-    pull_number: issueNumber
+    pull_number: pullNumber
   })
+
+  const headCommit = pull.data.head.sha
 
   for (const commit of commits) {
     // Check if a comment for this commit already exists
@@ -124,7 +134,7 @@ export async function summarizeCommits (
     if (existingComment !== undefined) {
       const currentCommitAbovePrSummary = existingComment.body?.split('PR summary so far:')[0] ?? ''
       const summaryLines = currentCommitAbovePrSummary.split('\n').slice(1).join('\n')
-      commitSummaries.push(summaryLines)
+      commitSummaries.push([commit.sha, summaryLines])
       continue
     }
 
@@ -153,7 +163,7 @@ export async function summarizeCommits (
     if (!isMergeCommit) {
       completion = await getOpenAICompletion(comparison, completion, {
         sha: commit.sha,
-        issueNumber,
+        issueNumber: pullNumber,
         repository,
         commit: commitObject
       })
@@ -161,23 +171,42 @@ export async function summarizeCommits (
       completion = 'Not generating summary for merge commits'
     }
 
-    commitSummaries.push(completion)
+    commitSummaries.push([commit.sha, completion])
 
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}:\n\n${completion}`
 
-    await octokit.issues.createComment({
-      owner: repository.owner.login,
-      repo: repository.name,
-      issue_number: issueNumber,
-      body: comment,
-      commit_id: commit.sha
-    })
+    if (commit.sha !== headCommit) {
+      await octokit.issues.createComment({
+        owner: repository.owner.login,
+        repo: repository.name,
+        issue_number: pullNumber,
+        body: comment,
+        commit_id: commit.sha
+      })
+    }
     commitsSummarized++
     if (commitsSummarized >= MAX_COMMITS_TO_SUMMARIZE) {
       console.log('Max commits summarized - if you want to summarize more, rerun the action. This is a protection against spamming the PR with comments')
       break
     }
+  }
+  const headCommitShaAndSummary = commitSummaries.find(([sha, summary]) => sha === headCommit)
+  if (headCommitShaAndSummary !== undefined) {
+    let prSummary = 'Error summarizing PR'
+    try {
+      prSummary = await summarizePr(modifiedFilesSummaries, commitSummaries)
+    } catch (error) {
+      console.error(error)
+    }
+    const comment = `GPT summary of ${headCommit}:\n\n${headCommitShaAndSummary[1]}\n\nPR summary so far:\n\n${prSummary}`
+    await octokit.issues.createComment({
+      owner: repository.owner.login,
+      repo: repository.name,
+      issue_number: pullNumber,
+      body: comment,
+      commit_id: headCommit
+    })
   }
   return commitSummaries
 }
