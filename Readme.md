@@ -37,6 +37,7 @@ on:
 jobs:
   summarize:
     runs-on: ubuntu-latest
+    permissions: write-all  # Some repositories need this line
 
     steps:
       - uses: KanHarI/gpt-commit-summarizer@master
@@ -78,6 +79,7 @@ on:
 jobs:
   summarize:
     runs-on: self-hosted
+    permissions: write-all  # Some repositories need this line
 
     steps:
       - uses: KanHarI/gpt-commit-summarizer@master
