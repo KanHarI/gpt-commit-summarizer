@@ -45,7 +45,8 @@ async function getReviewComments (pullRequestNumber: number, repository: Payload
 }
 
 export async function getFilesSummaries (pullNumber: number,
-  repository: PayloadRepository): Promise<Record<string, string>> {
+  repository: PayloadRepository,
+  latestCommit: string): Promise<Record<string, string>> {
   const filesChanged = await octokit.pulls.listFiles({
     owner: repository.owner.login,
     repo: repository.name,

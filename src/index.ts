@@ -17,9 +17,9 @@ async function run (): Promise<void> {
     throw new Error('Repository undefined')
   }
 
-  const commitSummaries = await summarizeCommits(issueNumber, repository)
+  const [commitSummaries, latestCommit] = await summarizeCommits(issueNumber, repository)
   // Create a dictionary with the modified files being keys, and the hash values of the latest commits in which the file was modified being the values
-  const modifiedFilesSummaries = await getFilesSummaries(issueNumber, repository)
+  const modifiedFilesSummaries = await getFilesSummaries(issueNumber, repository, latestCommit)
 
   console.log('Changed Files: ', modifiedFilesSummaries)
   console.log(commitSummaries)
