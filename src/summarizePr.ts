@@ -11,6 +11,7 @@ You went over every commit that is part of the pull request and over every file 
 For some of these, there was an error in the commit summary, or in the files diff summary.
 Please summarize the pull request. Write your response in bullet points, starting each bullet point with a \`*\`.
 Write a high level description. Do not repeat the commit summaries or the file summaries.
+Write the most important bullet points. The list should not be more than a few bullet points.
 `;
 
 const linkRegex = /\[.*?\]\(https:\/\/github\.com\/.*?[a-zA-Z0-f]{40}\/(.*?)\)/;
