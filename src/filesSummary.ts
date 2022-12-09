@@ -16,7 +16,7 @@ Every bullet point should start with a \`*\`.
 
 async function getOpenAISummaryForFile (filename: string, patch: string): Promise<string> {
   const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nANALYSIS:\n`
-  console.log(`OpenAI prompt: ${openAIPrompt}`)
+  console.log(`OpenAI file summary prompt: ${openAIPrompt}`)
 
   if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
     throw new Error('OpenAI query too big')
