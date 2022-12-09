@@ -96,7 +96,7 @@ async function getOpenAICompletion (comparison: Awaited<ReturnType<typeof octoki
 export async function summarizeCommits (
   issueNumber: number,
   repository: { owner: { login: string }, name: string }
-): Promise<[string[], string]> {
+): Promise<string[]> {
   const commitSummaries: string[] = []
 
   const comments = await octokit.paginate(octokit.issues.listComments, {
@@ -114,7 +114,6 @@ export async function summarizeCommits (
     pull_number: issueNumber
   })
 
-  const latestCommit = commits[commits.length - 1]
   for (const commit of commits) {
     // Check if a comment for this commit already exists
     const expectedComment = `GPT summary of ${commit.sha}:`
@@ -180,5 +179,5 @@ export async function summarizeCommits (
       break
     }
   }
-  return [commitSummaries, latestCommit.sha]
+  return commitSummaries
 }

@@ -45,23 +45,36 @@ async function getReviewComments (pullRequestNumber: number, repository: Payload
 }
 
 export async function getFilesSummaries (pullNumber: number,
-  repository: PayloadRepository,
-  latestCommit: string): Promise<Record<string, string>> {
+  repository: PayloadRepository): Promise<Record<string, string>> {
   const filesChanged = await octokit.pulls.listFiles({
     owner: repository.owner.login,
     repo: repository.name,
     pull_number: pullNumber
   })
-  const modifiedFiles: Record<string, { sha: string, diff: string, position: number, filename: string }> = {}
+  const pullRequest = await octokit.pulls.get({
+    owner: repository.owner.login,
+    repo: repository.name,
+    pull_number: pullNumber
+  })
+  const baseCommitSha = pullRequest.data.base.sha
+  const headCommitSha = pullRequest.data.head.sha
+  const baseCommit = await octokit.repos.getCommit({
+    owner: repository.owner.login,
+    repo: repository.name,
+    commit_sha: baseCommitSha,
+    ref: baseCommitSha
+  })
+  const modifiedFiles: Record<string, { sha: string, originSha: string, diff: string, position: number, filename: string }> = {}
   for (const file of filesChanged.data) {
     console.log('file:\n', file)
-    modifiedFiles[file.filename] = { sha: file.sha, diff: file.patch ?? '', position: 0, filename: file.filename }
+    const originSha = baseCommit.data.files?.find((baseCommitFile) => baseCommitFile.filename === file.filename)?.sha ?? ''
+    modifiedFiles[file.filename] = { sha: file.sha, originSha, diff: file.patch ?? '', position: 0, filename: file.filename }
   }
   const existingReviewSummaries = await getReviewComments(pullNumber, repository)
   const result: Record<string, string> = {}
   for (const modifiedFile of Object.keys(modifiedFiles)) {
     let isFileAlreadySummarized = false
-    const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].sha}:`
+    const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:`
     for (const reviewSummary of existingReviewSummaries) {
       if (reviewSummary.includes(expectedComment)) {
         const summary = reviewSummary.split('\n').slice(1).join('\n')
@@ -79,10 +92,10 @@ export async function getFilesSummaries (pullNumber: number,
       owner: repository.owner.login,
       repo: repository.name,
       pull_number: pullNumber,
-      commit_id: modifiedFiles[modifiedFile].sha,
+      commit_id: headCommitSha,
       path: modifiedFiles[modifiedFile].filename,
       line: modifiedFiles[modifiedFile].position,
-      body: `GPT summary of ${modifiedFiles[modifiedFile].sha}:\n${fileAnalysisAndSummary}`
+      body: `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:\n${fileAnalysisAndSummary}`
     })
     break
   }
