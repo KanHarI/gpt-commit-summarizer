@@ -124,7 +124,7 @@ export async function summarizeCommits (
 
   const headCommit = pull.data.head.sha
 
-  let needsToSummarizeHead = true
+  let needsToSummarizeHead = false
   for (const commit of commits) {
     // Check if a comment for this commit already exists
     const expectedComment = `GPT summary of ${commit.sha}:`
@@ -140,7 +140,7 @@ export async function summarizeCommits (
     }
 
     if (commit.sha === headCommit) {
-      needsToSummarizeHead = false
+      needsToSummarizeHead = true
     }
 
     // Get the commit object with the list of files that were modified
