@@ -41,7 +41,7 @@ export async function summarizePr(
   const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE COMMIT SUMMARIES:\n\`\`\`\n${commitsString}\n\`\`\`\n\nTHE FILE SUMMARIES:\n\`\`\`\n${filesString}\n\`\`\`\n\n
   Reminder - write only the most important points. No more than a few bullet points.
   THE PULL REQUEST SUMMARY:\n`;
-  console.log(`OpenAI for PR summary prompt: ${openAIPrompt}`);
+  console.log(`OpenAI for PR summary prompt:\n${openAIPrompt}`);
 
   if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
     throw new Error("OpenAI query too big");
