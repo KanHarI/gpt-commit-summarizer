@@ -62,16 +62,15 @@ export async function getFilesSummaries (pullNumber: number,
   })
   const baseCommitSha = pullRequest.data.base.sha
   const headCommitSha = pullRequest.data.head.sha
-  const baseCommit = await octokit.repos.getCommit({
+  const baseCommitTree = await octokit.git.getTree({
     owner: repository.owner.login,
     repo: repository.name,
-    commit_sha: baseCommitSha,
-    ref: baseCommitSha
+    tree_sha: baseCommitSha
   })
   const modifiedFiles: Record<string, { sha: string, originSha: string, diff: string, position: number, filename: string }> = {}
   for (const file of filesChanged.data) {
     console.log('file:\n', file)
-    const originSha = baseCommit.data.files?.find((baseCommitFile) => baseCommitFile.filename === file.filename)?.sha ?? ''
+    const originSha = baseCommitTree.data.tree.find((tree: any) => tree.path === file.filename)?.sha ?? ''
     console.log('originSha:\n', originSha)
     const firstModifiedLineAfterCommit = Number(file.patch?.split('+')[1]?.split(',')[0]) ?? 0
     modifiedFiles[file.filename] = { sha: file.sha, originSha, diff: file.patch ?? '', position: firstModifiedLineAfterCommit, filename: file.filename }
