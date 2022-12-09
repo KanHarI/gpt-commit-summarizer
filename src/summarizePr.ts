@@ -47,12 +47,16 @@ export async function summarizePr(
     return "Error: couldn't generate summary. PR too big";
   }
 
-  const response = await openai.createCompletion({
-    model: MODEL_NAME,
-    prompt: openAIPrompt,
-    max_tokens: MAX_TOKENS,
-    temperature: TEMPERATURE,
-  });
-
-  return response.data.choices[0].text ?? "Error: couldn't generate summary";
+  try {
+    const response = await openai.createCompletion({
+      model: MODEL_NAME,
+      prompt: openAIPrompt,
+      max_tokens: MAX_TOKENS,
+      temperature: TEMPERATURE,
+    });
+    return response.data.choices[0].text ?? "Error: couldn't generate summary";
+  } catch (error) {
+    console.error(error);
+    return "Error: couldn't generate summary";
+  }
 }
