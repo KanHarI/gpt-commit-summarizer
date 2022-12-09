@@ -65,20 +65,6 @@ async function getOpenAISummaryForFile(
   return "Error: couldn't generate summary";
 }
 
-// eslint-disable-next-line no-unused-vars
-function cleanupOldComments(
-  // eslint-disable-next-line no-unused-vars
-  repository: PayloadRepository,
-  // eslint-disable-next-line no-unused-vars
-  commentIds: string[]
-) {
-  // await octokit.pulls.deleteReviewComment({
-  //   owner: repository.owner.login,
-  //   repo: repository.name,
-  //   comment_id: comment.id,
-  // });
-}
-
 async function getReviewComments(
   pullRequestNumber: number,
   repository: PayloadRepository
@@ -152,6 +138,20 @@ export async function getFilesSummaries(
   const existingReviewSummaries = (
     await getReviewComments(pullNumber, repository)
   ).filter((comment) => comment[0].startsWith("GPT summary of"));
+  let commentIdsToDelete = [...existingReviewSummaries];
+  for (const modifiedFile of Object.keys(modifiedFiles)) {
+    const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:`;
+    commentIdsToDelete = commentIdsToDelete.filter(
+      ([comment]) => !comment.includes(expectedComment)
+    );
+  }
+  for (const [, id] of commentIdsToDelete) {
+    await octokit.pulls.deleteReviewComment({
+      owner: repository.owner.login,
+      repo: repository.name,
+      comment_id: id,
+    });
+  }
   const result: Record<string, string> = {};
   let summarizedFiles = 0;
   for (const modifiedFile of Object.keys(modifiedFiles)) {
