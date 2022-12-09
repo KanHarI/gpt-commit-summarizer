@@ -3,7 +3,7 @@ import { PayloadRepository } from '@actions/github/lib/interfaces'
 import { SHARED_PROMPT } from './sharedPrompt'
 import { MAX_OPEN_AI_QUERY_LENGTH, MAX_TOKENS, MODEL_NAME, openai, TEMPERATURE } from './openAi'
 
-const linkRegex = /\[[a-f0-9]{6}\]\(https:\/\/github\.com\/.*?#([a-f0-9]{40})/
+const linkRegex = /\[[a-f0-9]{6}\]\(https:\/\/github\.com\/.*?#([a-f0-9]{40})\)/
 
 export function preprocessCommitMessage (commitMessage: string): string {
   let match = commitMessage.match(linkRegex)
