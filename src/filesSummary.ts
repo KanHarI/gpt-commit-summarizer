@@ -150,6 +150,10 @@ export async function getFilesSummaries(
   const result: Record<string, string> = {};
   let summarizedFiles = 0;
   for (const modifiedFile of Object.keys(modifiedFiles)) {
+    if (modifiedFiles[modifiedFile].diff === "") {
+      // Binary file
+      continue;
+    }
     let isFileAlreadySummarized = false;
     const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:`;
     for (const reviewSummary of existingReviewSummaries) {
