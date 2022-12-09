@@ -12,7 +12,7 @@ const linkRegex = /\[.*?\]\(https:\/\/github\.com\/.*?[a-zA-Z0-f]{40}\/(.*)\)/
 function preprocessCommitMessage (commitMessage: string): string {
   let match = commitMessage.match(linkRegex)
   while (match !== null) {
-    commitMessage = commitMessage.split(match[0]).join(match[1])
+    commitMessage = commitMessage.split(match[0]).join('[' + match[1] + ']')
     match = commitMessage.match(linkRegex)
   }
   return commitMessage
