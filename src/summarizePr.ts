@@ -44,7 +44,7 @@ export async function summarizePr(
   console.log(`OpenAI for PR summary prompt:\n${openAIPrompt}`);
 
   if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
-    throw new Error("OpenAI query too big");
+    return "Error: couldn't generate summary. PR too big";
   }
 
   const response = await openai.createCompletion({
