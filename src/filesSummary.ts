@@ -7,15 +7,14 @@ const OPEN_AI_PROMPT = `${SHARED_PROMPT}
 The following is a git diff of a single file.
 Please summarize it in a comment, describing the changes made in the diff in high level.
 Do it in the following way:
-Write \`ANALYSIS:\` and then write a detailed description of all changes made in the diff.
-Then write \`SUMMARY:\` and then write a summary of the changes made in the diff, as a bullet point list.
+Write \`SUMMARY:\` and then write a summary of the changes made in the diff, as a bullet point list.
 Every bullet point should start with a \`*\`.
 `
 
 // const MAX_FILES_TO_SUMMARIZE = 1
 
 async function getOpenAISummaryForFile (filename: string, patch: string): Promise<string> {
-  const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nANALYSIS:\n`
+  const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nSUMMARY:\n`
   console.log(`OpenAI file summary prompt: ${openAIPrompt}`)
 
   if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
