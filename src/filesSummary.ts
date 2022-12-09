@@ -14,22 +14,26 @@ Every bullet point should start with a \`*\`.
 // const MAX_FILES_TO_SUMMARIZE = 1
 
 async function getOpenAISummaryForFile (filename: string, patch: string): Promise<string> {
-  const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nSUMMARY:\n`
-  console.log(`OpenAI file summary prompt: ${openAIPrompt}`)
+  try {
+    const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nSUMMARY:\n`
+    console.log(`OpenAI file summary prompt: ${openAIPrompt}`)
 
-  if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
-    throw new Error('OpenAI query too big')
-  }
+    if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
+      throw new Error('OpenAI query too big')
+    }
 
-  const response = await openai.createCompletion({
-    model: MODEL_NAME,
-    prompt: openAIPrompt,
-    max_tokens: MAX_TOKENS,
-    temperature: TEMPERATURE
-  })
-  console.log('Raw openAI response:', response.data)
-  if (response.data.choices !== undefined && response.data.choices.length > 0) {
-    return response.data.choices[0].text ?? "Error: couldn't generate summary"
+    const response = await openai.createCompletion({
+      model: MODEL_NAME,
+      prompt: openAIPrompt,
+      max_tokens: MAX_TOKENS,
+      temperature: TEMPERATURE
+    })
+    console.log('Raw openAI response:', response.data)
+    if (response.data.choices !== undefined && response.data.choices.length > 0) {
+      return response.data.choices[0].text ?? "Error: couldn't generate summary"
+    }
+  } catch (error) {
+    console.error(error)
   }
   return "Error: couldn't generate summary"
 }
