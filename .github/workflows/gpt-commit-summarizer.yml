@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: KanHarI/gpt-commit-summarizer@feature/pr-summaries
+      - uses: KanHarI/gpt-commit-summarizer@feature/pr-summaries-p2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

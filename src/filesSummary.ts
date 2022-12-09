@@ -11,7 +11,7 @@ Write \`SUMMARY:\` and then write a summary of the changes made in the diff, as 
 Every bullet point should start with a \`*\`.
 `
 
-const MAX_FILES_TO_SUMMARIZE = 10
+const MAX_FILES_TO_SUMMARIZE = 1
 
 async function getOpenAISummaryForFile (filename: string, patch: string): Promise<string> {
   try {
