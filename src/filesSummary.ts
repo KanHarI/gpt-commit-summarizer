@@ -70,7 +70,7 @@ export async function getFilesSummaries (pullNumber: number,
   const modifiedFiles: Record<string, { sha: string, originSha: string, diff: string, position: number, filename: string }> = {}
   for (const file of filesChanged.data) {
     console.log('file:\n', file)
-    const originSha = baseCommitTree.data.tree.find((tree: any) => tree.path === file.filename)?.sha ?? ''
+    const originSha = baseCommitTree.data.tree.find((tree: any) => tree.path === file.filename)?.sha ?? 'None'
     console.log('originSha:\n', originSha)
     const firstModifiedLineAfterCommit = Number(file.patch?.split('+')[1]?.split(',')[0]) ?? 0
     modifiedFiles[file.filename] = { sha: file.sha, originSha, diff: file.patch ?? '', position: firstModifiedLineAfterCommit, filename: file.filename }
