@@ -4,13 +4,25 @@ const OPEN_AI_PROMPT = `You are an expert programmer, and you are trying to summ
 You went over every commit that is part of the pull request and over every file that was changed in it.
 For some of these, there was an error in the commit summary, or in the files diff summary.
 Please summarize the pull request. Write your response in bullet points, starting each bullet point with a \`*\`.
+Write a high level description. Do not repeat the commit summaries or the file summaries.
 `
+
+const linkRegex = /https:\/\/github\.com\/.*?[a-zA-Z0-f]{40}(.*)\)/
+
+function preprocessCommitMessage (commitMessage: string): string {
+  let match = commitMessage.match(linkRegex)
+  while (match !== null) {
+    commitMessage = commitMessage.split(match[0]).join(match[1])
+    match = commitMessage.match(linkRegex)
+  }
+  return commitMessage
+}
 
 export async function summarizePr (
   fileSummaries: Record<string, string>,
   commitSummaries: Array<[string, string]>
 ): Promise<string> {
-  const commitsString = (Array.from(commitSummaries.entries())).map(([idx, [commit, summary]]) => `Commit #${idx}:\n${summary}`).join('\n')
+  const commitsString = (Array.from(commitSummaries.entries())).map(([idx, [commit, summary]]) => `Commit #${idx}:\n${preprocessCommitMessage(summary)}`).join('\n')
   const filesString = (Object.entries(fileSummaries)).map(([filename, summary]) => `File ${filename}:\n${summary}`).join('\n')
   const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE COMMIT SUMMARIES:\n\`\`\`\n${commitsString}\n\`\`\`\n\nTHE FILE SUMMARIES:\n\`\`\`\n${filesString}\n\`\`\`\n\nTHE PULL REQUEST SUMMARY:\n`
   console.log(`OpenAI prompt: ${openAIPrompt}`)

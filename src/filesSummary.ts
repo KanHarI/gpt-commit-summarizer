@@ -96,6 +96,28 @@ export async function getFilesSummaries (pullNumber: number,
     }
     const fileAnalysisAndSummary = await getOpenAISummaryForFile(modifiedFile, modifiedFiles[modifiedFile].diff)
     result[modifiedFile] = fileAnalysisAndSummary
+    const comment = `GPT summary of [${
+      modifiedFiles[modifiedFile].originSha.slice(0, 6)
+    }](https://github.com/${
+      repository.owner.login
+    }/${
+      repository.name
+    }/blob/${
+      baseCommitSha
+    }/${
+      modifiedFile
+    }) - [${
+      modifiedFiles[modifiedFile].sha.slice(0, 6)
+    }](https://github.com/${
+      repository.owner.login
+    }/${
+      repository.name
+    }/blob/${
+      headCommitSha
+    }/${
+      modifiedFile
+    }):
+    }\n${fileAnalysisAndSummary}`
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
@@ -103,7 +125,7 @@ export async function getFilesSummaries (pullNumber: number,
       commit_id: headCommitSha,
       path: modifiedFiles[modifiedFile].filename,
       line: modifiedFiles[modifiedFile].position,
-      body: `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:\n${fileAnalysisAndSummary}`
+      body: comment
     })
     summarizedFiles += 1
     if (summarizedFiles >= MAX_FILES_TO_SUMMARIZE) {
