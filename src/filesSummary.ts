@@ -3,7 +3,7 @@ import { PayloadRepository } from '@actions/github/lib/interfaces'
 import { SHARED_PROMPT } from './sharedPrompt'
 import { MAX_OPEN_AI_QUERY_LENGTH, MAX_TOKENS, MODEL_NAME, openai, TEMPERATURE } from './openAi'
 
-const linkRegex = /\[[a-f0-9]{6}\]\(https:\/\/github\.com\/.*?([a-zA-Z0-f]{40})\/.*?\)/
+const linkRegex = /\[[a-f0-9]{6}\]\(https:\/\/github\.com\/.*?#([a-f0-9]{40})/
 
 export function preprocessCommitMessage (commitMessage: string): string {
   let match = commitMessage.match(linkRegex)
@@ -117,7 +117,7 @@ export async function getFilesSummaries (pullNumber: number,
       baseCommitSha
     }/${
       modifiedFile
-    }) - [${
+    }#${modifiedFiles[modifiedFile].originSha}) - [${
       modifiedFiles[modifiedFile].sha.slice(0, 6)
     }](https://github.com/${
       repository.owner.login
@@ -127,7 +127,7 @@ export async function getFilesSummaries (pullNumber: number,
       headCommitSha
     }/${
       modifiedFile
-    }):\n${fileAnalysisAndSummary}`
+    }#${modifiedFiles[modifiedFile].sha}):\n${fileAnalysisAndSummary}`
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
