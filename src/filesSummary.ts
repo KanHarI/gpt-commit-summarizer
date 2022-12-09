@@ -3,6 +3,17 @@ import { PayloadRepository } from '@actions/github/lib/interfaces'
 import { SHARED_PROMPT } from './sharedPrompt'
 import { MAX_OPEN_AI_QUERY_LENGTH, MAX_TOKENS, MODEL_NAME, openai, TEMPERATURE } from './openAi'
 
+const linkRegex = /\[[a-f0-9]{6}\]\(https:\/\/github\.com\/.*?([a-zA-Z0-f]{40})\/.*?\)/
+
+export function preprocessCommitMessage (commitMessage: string): string {
+  let match = commitMessage.match(linkRegex)
+  while (match !== null) {
+    commitMessage = commitMessage.split(match[0]).join(match[1])
+    match = commitMessage.match(linkRegex)
+  }
+  return commitMessage
+}
+
 const OPEN_AI_PROMPT = `${SHARED_PROMPT}
 The following is a git diff of a single file.
 Please summarize it in a comment, describing the changes made in the diff in high level.
@@ -45,7 +56,7 @@ async function getReviewComments (pullRequestNumber: number, repository: Payload
     pull_number: pullRequestNumber
   }) as unknown as Awaited<ReturnType<typeof octokit.pulls.listReviewComments>>)
   console.log('reviewComments:\n', reviewComments)
-  return (reviewComments as unknown as Array<{ body?: string }>).map((reviewComment) => reviewComment.body ?? '')
+  return (reviewComments as unknown as Array<{ body?: string }>).map((reviewComment) => preprocessCommitMessage(reviewComment.body ?? ''))
 }
 
 export async function getFilesSummaries (pullNumber: number,
