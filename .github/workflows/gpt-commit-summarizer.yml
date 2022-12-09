@@ -1,5 +1,6 @@
 name: GPT Commits summarizer
 # Summary: This action will write a comment about every commit in a pull request, containing major points
+# Add a comment
 
 on:
   pull_request:
