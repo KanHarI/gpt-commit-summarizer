@@ -185,7 +185,11 @@ export async function getFilesSummaries(
       pull_number: pullNumber,
       commit_id: headCommitSha,
       path: modifiedFiles[modifiedFile].filename,
-      line: modifiedFiles[modifiedFile].position,
+      line:
+        modifiedFiles[modifiedFile].position > 0
+          ? modifiedFiles[modifiedFile].position
+          : 1,
+      side: modifiedFiles[modifiedFile].position > 0 ? "RIGHT" : "LEFT",
       body: comment,
     });
     summarizedFiles += 1;
