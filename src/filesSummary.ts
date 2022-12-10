@@ -192,7 +192,7 @@ export async function getFilesSummaries(
       line: modifiedFiles[modifiedFile].position ?? 1,
       side:
         modifiedFiles[modifiedFile].position > 0 ||
-        modifiedFiles[modifiedFile].originSha !== "None"
+        modifiedFiles[modifiedFile].originSha === "None"
           ? "RIGHT"
           : "LEFT",
       body: comment,
