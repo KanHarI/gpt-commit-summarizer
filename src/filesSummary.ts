@@ -183,19 +183,21 @@ export async function getFilesSummaries(
     }/${repository.name}/blob/${headCommitSha}/${modifiedFile}#${
       modifiedFiles[modifiedFile].sha
     }):\n${fileAnalysisAndSummary}`;
+    console.log(
+      `Adding comment to line ${modifiedFiles[modifiedFile].position}`
+    );
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
       pull_number: pullNumber,
       commit_id: headCommitSha,
       path: modifiedFiles[modifiedFile].filename,
-      line:
-        modifiedFiles[modifiedFile].position > 0
-          ? modifiedFiles[modifiedFile].position
-          : 1,
+      line: Number.isFinite(modifiedFiles[modifiedFile].position)
+        ? modifiedFiles[modifiedFile].position
+        : 1,
       side:
         modifiedFiles[modifiedFile].position > 0 ||
-        modifiedFiles[modifiedFile].originSha !== "None"
+        modifiedFiles[modifiedFile].originSha === "None"
           ? "RIGHT"
           : "LEFT",
       body: comment,
