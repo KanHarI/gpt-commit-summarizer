@@ -1,5 +1,5 @@
-name: 'Commit Summary'
-description: 'Write a comment about every commit in a pull request'
+name: 'Pull request summarizer'
+description: 'Write a comment about every commit in a pull request, every file diff, and summarize PR'
 inputs:
   repository:
     description: 'The repository that the pull request is being opened in'
@@ -9,6 +9,14 @@ inputs:
     description: 'The GitHub token to use for authenticating the action'
     required: true
     default: ''
+  icon:
+    description: 'The icon to use for the comment'
+    required: false
+    default: 'aperture'
+  color:
+    description: 'The color to use for the comment'
+    required: false
+    default: 'blue'
 runs:
   using: 'node16'
   main: 'lib/index.js'
