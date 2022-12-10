@@ -193,7 +193,9 @@ export async function getFilesSummaries(
       commit_id: headCommitSha,
       path: modifiedFiles[modifiedFile].filename,
       line: Number.isFinite(modifiedFiles[modifiedFile].position)
-        ? modifiedFiles[modifiedFile].position
+        ? modifiedFiles[modifiedFile].position > 0
+          ? modifiedFiles[modifiedFile].position
+          : 1
         : 1,
       side:
         modifiedFiles[modifiedFile].position > 0 ||
