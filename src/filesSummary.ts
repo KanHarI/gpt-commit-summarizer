@@ -183,6 +183,9 @@ export async function getFilesSummaries(
     }/${repository.name}/blob/${headCommitSha}/${modifiedFile}#${
       modifiedFiles[modifiedFile].sha
     }):\n${fileAnalysisAndSummary}`;
+    console.log(
+      `Adding comment to line ${modifiedFiles[modifiedFile].position}`
+    );
     await octokit.pulls.createReviewComment({
       owner: repository.owner.login,
       repo: repository.name,
