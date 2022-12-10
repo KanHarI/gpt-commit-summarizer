@@ -193,7 +193,11 @@ export async function getFilesSummaries(
         modifiedFiles[modifiedFile].position > 0
           ? modifiedFiles[modifiedFile].position
           : 1,
-      side: modifiedFiles[modifiedFile].position > 0 ? "RIGHT" : "LEFT",
+      side:
+        modifiedFiles[modifiedFile].position > 0 &&
+        modifiedFiles[modifiedFile].originSha !== "None"
+          ? "RIGHT"
+          : "LEFT",
       body: comment,
     });
     summarizedFiles += 1;
