@@ -9,14 +9,9 @@ inputs:
     description: 'The GitHub token to use for authenticating the action'
     required: true
     default: ''
-  icon:
-    description: 'The icon to use for the comment'
-    required: false
-    default: 'aperture'
-  color:
-    description: 'The color to use for the comment'
-    required: false
-    default: 'blue'
+branding:
+    icon: 'aperture'
+    color: 'purple'
 runs:
   using: 'node16'
   main: 'lib/index.js'
