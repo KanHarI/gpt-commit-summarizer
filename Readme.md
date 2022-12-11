@@ -10,7 +10,7 @@ To use this action, you will need to have an OpenAI API key. If you don't alread
 
 Once you have your API key, you will need to add it to your GitHub repository as a secret. To do this, go to your repository's settings and navigate to the "Secrets" section. Click on "Add a new secret" and enter the secret name OPENAI_API_KEY and the value of your API key.
 
-Next, you will need to add the workflow file to your repository. Create a file named `.github/workflows/gpt-commit-summarizer.yml` (relative to the git root folder) and copy the following code into it:
+Next, you will need to add the workflow file to your repository. Create a file named `.github/workflows/gpt-commit-summarizer.yml` (relative to the git root folder) and copy the following code into it (JS users - there in [an alternative](https://github.com/soof-golan/add-gpt-summarizer)):
 ```yaml
 name: GPT Commits summarizer
 # Summary: This action will write a comment about every commit in a pull request, as well as generate a summary for every file that was modified and add it to the review page, compile a PR summary from all commit summaries and file diff summaries, and delete outdated code review comments
