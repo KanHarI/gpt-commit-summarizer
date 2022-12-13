@@ -37,7 +37,7 @@ Most commits will have less comments than this examples list.
 The last comment does not include the file names,
 because there were more than two relevant files in the hypothetical commit.
 Do not include parts of the example in your summary.
-It is given only as an example of appropriate comments.
+It is given only as an example of appropriate comments. Everything should be in Korean.
 `;
 
 const MAX_COMMITS_TO_SUMMARIZE = 20;
