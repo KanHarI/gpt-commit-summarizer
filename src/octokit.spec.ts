@@ -1,3 +1,14 @@
+/* write a unit test in jest for the following typescript module.  
+the test should listFiles from a pull request from the repo called 'testproj' with owner 'd4nshields' and with pull_number "1".  
+For each file returned should check that all required properties exist */
+
+// import { Octokit } from "@octokit/rest";
+// 
+// export const octokit = new Octokit({
+//   auth: process.env.GITHUB_TOKEN,
+// });
+// 
+
 import {octokit} from './octokit';
 
 export type ListFilesParams = {
