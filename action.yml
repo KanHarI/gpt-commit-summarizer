@@ -1,4 +1,4 @@
-name: 'Pull request summarizer'
+name: 'Etendo Pull request summarizer'
 description: 'Write a comment about every commit in a pull request, every file diff, and summarize PR'
 inputs:
   repository:
