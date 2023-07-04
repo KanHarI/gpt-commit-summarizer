@@ -1,14 +1,10 @@
 import type { PayloadRepository } from "@actions/github/lib/interfaces";
+// hybrid module, load with require() or import
+import { minimatch } from "minimatch";
 
 import { octokit } from "./octokit";
-import {
-  MAX_OPEN_AI_QUERY_LENGTH,
-  MAX_TOKENS,
-  MODEL_NAME,
-  openai,
-  TEMPERATURE,
-} from "./openAi";
 import { SHARED_PROMPT } from "./sharedPrompt";
+import { predict } from "./vertexAi";
 
 const linkRegex =
   /\[(?:[a-f0-9]{6}|None)\]\(https:\/\/github\.com\/.*?#([a-f0-9]{40}|None)\)/;
@@ -32,36 +28,27 @@ Every bullet point should start with a \`*\`.
 
 const MAX_FILES_TO_SUMMARIZE = 20;
 
-async function getOpenAISummaryForFile(
+export async function getOpenAISummaryForFile(
   filename: string,
   patch: string
 ): Promise<string> {
   try {
-    const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n${patch}\n\`\`\`\n\nSUMMARY:\n`;
-    console.log(`OpenAI file summary prompt for ${filename}:\n${openAIPrompt}`);
-
-    if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
-      throw new Error("OpenAI query too big");
+    if (!patch) {
+      return "";
     }
+    const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE GIT DIFF OF ${filename} TO BE SUMMARIZED:\n\`\`\`\n`;
+    console.log(`Requesting AI file summary for ${filename}`);
 
-    const response = await openai.createCompletion({
-      model: MODEL_NAME,
-      prompt: openAIPrompt,
-      max_tokens: MAX_TOKENS,
-      temperature: TEMPERATURE,
-    });
-    if (
-      response.data.choices !== undefined &&
-      response.data.choices.length > 0
-    ) {
-      return (
-        response.data.choices[0].text ?? "Error: couldn't generate summary"
-      );
-    }
+    const response = await predict(
+      openAIPrompt,
+      patch,
+      `\n\`\`\`\n\nSUMMARY:\n`
+    );
+    return response ?? `Error: couldn't generate summary for file ${filename}`;
   } catch (error) {
     console.error(error);
   }
-  return "Error: couldn't generate summary";
+  return `Error: couldn't generate summary for file ${filename}`;
 }
 
 async function getReviewComments(
@@ -84,9 +71,86 @@ async function getReviewComments(
   ]);
 }
 
+export async function getFilesSummariesForCommit(
+  sha: string,
+  repository: PayloadRepository,
+  ignoredFilesGlob: string = "",
+  onlyFilesFrom: string = ""
+): Promise<Record<string, string>> {
+  const commit = await octokit.repos.getCommit({
+    owner: repository.owner.login,
+    repo: repository.name,
+    ref: sha,
+  });
+  if (!commit.data.files) {
+    return {};
+  }
+  const modifiedFiles: Record<
+    string,
+    {
+      sha: string;
+      diff: string;
+      position: number;
+      filename: string;
+    }
+  > = {};
+  for (const file of commit.data.files) {
+    let skip = false;
+    for (const ignoredFile of ignoredFilesGlob.split(",")) {
+      if (minimatch(file.filename, ignoredFile)) {
+        skip = true;
+        break;
+      }
+    }
+    for (const onlyFile of onlyFilesFrom.split(",")) {
+      if (minimatch(file.filename, onlyFile)) {
+        skip = false;
+        break;
+      }
+      skip = true;
+    }
+    if (skip) {
+      continue;
+    }
+
+    const firstModifiedLineAfterCommit =
+      Number(file.patch?.split("+")[1]?.split(",")[0]) ?? 0;
+    modifiedFiles[file.filename] = {
+      sha: file.sha,
+      diff: file.patch ?? "",
+      position: firstModifiedLineAfterCommit,
+      filename: file.filename,
+    };
+  }
+  const result: Record<string, string> = {};
+  let summarizedFiles = 0;
+  for (const modifiedFile of Object.keys(modifiedFiles)) {
+    if (modifiedFiles[modifiedFile].diff === "") {
+      // Binary file
+      continue;
+    }
+    const fileAnalysisAndSummary = await getOpenAISummaryForFile(
+      modifiedFile,
+      modifiedFiles[modifiedFile].diff
+    );
+    if (!fileAnalysisAndSummary) {
+      continue;
+    }
+    result[modifiedFile] = fileAnalysisAndSummary;
+    summarizedFiles += 1;
+    if (summarizedFiles >= MAX_FILES_TO_SUMMARIZE) {
+      break;
+    }
+  }
+  return result;
+}
+
 export async function getFilesSummaries(
   pullNumber: number,
-  repository: PayloadRepository
+  repository: PayloadRepository,
+  ignoredFilesGlob: string = "",
+  onlyFilesFrom: string = "",
+  createFileComments: boolean = false
 ): Promise<Record<string, string>> {
   const filesChanged = await octokit.pulls.listFiles({
     owner: repository.owner.login,
@@ -117,6 +181,26 @@ export async function getFilesSummaries(
     }
   > = {};
   for (const file of filesChanged.data) {
+    let skip = false;
+    if (ignoredFilesGlob) {
+      for (const ignoredFile of ignoredFilesGlob.split(",")) {
+        if (minimatch(file.filename, ignoredFile)) {
+          skip = true;
+          break;
+        }
+      }
+    }
+    if (onlyFilesFrom)
+      for (const onlyFile of onlyFilesFrom.split(",")) {
+        if (minimatch(file.filename, onlyFile)) {
+          skip = false;
+          break;
+        }
+        skip = true;
+      }
+    if (skip) {
+      continue;
+    }
     const originSha =
       baseCommitTree.data.tree.find((tree: any) => tree.path === file.filename)
         ?.sha ?? "None";
@@ -130,22 +214,25 @@ export async function getFilesSummaries(
       filename: file.filename,
     };
   }
-  const existingReviewSummaries = (
-    await getReviewComments(pullNumber, repository)
-  ).filter((comment) => comment[0].startsWith("GPT summary of"));
-  let commentIdsToDelete = [...existingReviewSummaries];
-  for (const modifiedFile of Object.keys(modifiedFiles)) {
-    const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:`;
-    commentIdsToDelete = commentIdsToDelete.filter(
-      ([comment]) => !comment.includes(expectedComment)
-    );
-  }
-  for (const [, id] of commentIdsToDelete) {
-    await octokit.pulls.deleteReviewComment({
-      owner: repository.owner.login,
-      repo: repository.name,
-      comment_id: id,
-    });
+  let existingReviewSummaries: [string, number][] = [];
+  if (createFileComments) {
+    existingReviewSummaries = (
+      await getReviewComments(pullNumber, repository)
+    ).filter((comment) => comment[0].startsWith("GPT summary of"));
+    let commentIdsToDelete = [...existingReviewSummaries];
+    for (const modifiedFile of Object.keys(modifiedFiles)) {
+      const expectedComment = `GPT summary of ${modifiedFiles[modifiedFile].originSha} - ${modifiedFiles[modifiedFile].sha}:`;
+      commentIdsToDelete = commentIdsToDelete.filter(
+        ([comment]) => !comment.includes(expectedComment)
+      );
+    }
+    for (const [, id] of commentIdsToDelete) {
+      await octokit.pulls.deleteReviewComment({
+        owner: repository.owner.login,
+        repo: repository.name,
+        comment_id: id,
+      });
+    }
   }
   const result: Record<string, string> = {};
   let summarizedFiles = 0;
@@ -171,7 +258,13 @@ export async function getFilesSummaries(
       modifiedFile,
       modifiedFiles[modifiedFile].diff
     );
+    if (!fileAnalysisAndSummary) {
+      continue;
+    }
     result[modifiedFile] = fileAnalysisAndSummary;
+    if (!createFileComments) {
+      continue;
+    }
     const comment = `GPT summary of [${modifiedFiles[
       modifiedFile
     ].originSha.slice(0, 6)}](https://github.com/${repository.owner.login}/${

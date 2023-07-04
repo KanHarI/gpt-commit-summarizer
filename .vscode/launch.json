@@ -1,0 +1,51 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run All Tests",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--detectOpenHandles",
+        "--forceExit",
+        "--testTimeout=600000"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "GITHUB_TOKEN": "<your github token>",
+        "OPENAI_API_KEY": "<your openai token>",
+        "PROJECT_ID": "<your project id>"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Current Test File",
+      "skipFiles": ["<node_internals>/**"],
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/node_modules/.bin/jest",
+        "--runInBand",
+        "--detectOpenHandles",
+        "--forceExit",
+        "--testTimeout=600000",
+        "${file}"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "GITHUB_TOKEN": "<your github token>",
+        "OPENAI_API_KEY": "<your openai token>",
+        "PROJECT_ID": "<your project id>"
+      }
+    }
+  ]
+}

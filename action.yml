@@ -1,17 +1,53 @@
-name: 'Pull request summarizer'
-description: 'Write a comment about every commit in a pull request, every file diff, and summarize PR'
+name: "Pull request summarizer"
+description: "Write a comment about every commit in a pull request, every file diff, and summarize PR"
 inputs:
   repository:
-    description: 'The repository that the pull request is being opened in'
+    description: "The repository that the pull request is being opened in"
     required: true
-    default: ''
+    default: ""
   token:
-    description: 'The GitHub token to use for authenticating the action'
+    description: "The GitHub token to use for authenticating the action"
     required: true
-    default: ''
+    default: ""
+  ignore-files:
+    description: "A list of files to ignore when summarizing the pull request"
+    required: false
+    default: ""
+  src-files:
+    description: "A list of files to include when summarizing the pull request"
+    required: false
+    default: ""
+  create-file-comments:
+    description: "Whether to create file comments for each file in the pull request"
+    required: false
+    type: boolean
+    default: false
+  pr-summary-as-comment:
+    description: "Whether to create a comment with the PR summary. If false it will be added to the PR body."
+    required: false
+    type: boolean
+    default: false
+  generate-images:
+    description: "Generate images for the release summary"
+    required: false
+    type: boolean
+    default: false
+  project:
+    description: "The google project to use for authenticating the action"
+    required: true
+    default: ""
+  release:
+    description: "If specified, the action will run against the release bypassing any PR or pull request"
+    required: false
+    default: ""
+  replace-generated-notes:
+    description: "If specified, the action will replace previously the generated release notes if present"
+    required: false
+    type: boolean
+    default: false
 branding:
-    icon: 'aperture'
-    color: 'purple'
+  icon: "aperture"
+  color: "purple"
 runs:
-  using: 'node16'
-  main: 'lib/index.js'
+  using: "node16"
+  main: "lib/index.js"

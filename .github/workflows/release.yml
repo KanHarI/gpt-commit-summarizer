@@ -1,0 +1,25 @@
+name: Vertex AI GPT Commits summarizer
+
+on:
+  release:
+    # Triggered on Pre-Releases (Staging) and Releases
+    types: [released, prereleased]
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - id: auth
+        uses: google-github-actions/auth@v1
+        with:
+          export_environment_variables: true
+          credentials_json: "${{ secrets.GCR_JSON }}"
+
+      - uses: jenseng/dynamic-uses@v1
+        with:
+          uses: "${{ github.repository }}@${{ github.sha }}"
+          with: '{ "ignore-files": "lib/**,yarn.lock", "project": "${{ steps.auth.outputs.project_id }}", "generate-images": "true" }'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

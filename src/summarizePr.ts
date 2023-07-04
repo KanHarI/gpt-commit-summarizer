@@ -1,10 +1,4 @@
-import {
-  MAX_OPEN_AI_QUERY_LENGTH,
-  MAX_TOKENS,
-  MODEL_NAME,
-  openai,
-  TEMPERATURE,
-} from "./openAi";
+import { predict } from "./vertexAi";
 
 const OPEN_AI_PROMPT = `You are an expert programmer, and you are trying to summarize a pull request.
 You went over every commit that is part of the pull request and over every file that was changed in it.
@@ -41,20 +35,10 @@ export async function summarizePr(
   const openAIPrompt = `${OPEN_AI_PROMPT}\n\nTHE COMMIT SUMMARIES:\n\`\`\`\n${commitsString}\n\`\`\`\n\nTHE FILE SUMMARIES:\n\`\`\`\n${filesString}\n\`\`\`\n\n
   Reminder - write only the most important points. No more than a few bullet points.
   THE PULL REQUEST SUMMARY:\n`;
-  console.log(`OpenAI for PR summary prompt:\n${openAIPrompt}`);
-
-  if (openAIPrompt.length > MAX_OPEN_AI_QUERY_LENGTH) {
-    return "Error: couldn't generate summary. PR too big";
-  }
+  console.log(`Requesting AI for PR summary`);
 
   try {
-    const response = await openai.createCompletion({
-      model: MODEL_NAME,
-      prompt: openAIPrompt,
-      max_tokens: MAX_TOKENS,
-      temperature: TEMPERATURE,
-    });
-    return response.data.choices[0].text ?? "Error: couldn't generate summary";
+    return (await predict(openAIPrompt)) ?? "Error: couldn't generate summary";
   } catch (error) {
     console.error(error);
     return "Error: couldn't generate summary";

@@ -1,2 +1,5 @@
 .idea/
 node_modules/
+coverage
+release_summary.png
+.DS_Store

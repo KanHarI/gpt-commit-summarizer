@@ -1,16 +1,18 @@
-# gpt-commit-summarizer
+# gpt-commit-summarizer ported to Vertex AI
+
+## This is the previous summary for the original project
 
 See [announcement blogpost](https://medium.com/@knaan.harpaz/leverage-openais-language-model-for-automated-commit-summaries-8181cef30375?source=friends_link&sk=b71a6799548f52274d2d0888e9bfd97e).
 
 Don't have time and want to get hacking right away? Check out the [Getting Started](#getting-started) section.
 
-* [Getting Started](#getting-started)
-* [Troubleshooting](#troubleshooting)
-* [Encountered any bugs?](#encountered-any-bugs)
+- [Getting Started](#getting-started)
+- [Troubleshooting](#troubleshooting)
+- [Encountered any bugs?](#encountered-any-bugs)
 
-The `gpt-commit-summarizer` GitHub Action is a powerful tool that harnesses the capabilities of OpenAI's state-of-the-art text-davinci-003 large language model to provide summaries of the changes introduced by a pull request in a repository. By generating the git diff for each commit and for each modified file and sending it to the OpenAI API with a carefully crafted prompt, the action is able to produce concise and informative summaries that can greatly enhance collaboration and understanding in large codebases.
+The `gpt-commit-summarizer` GitHub Action is a powerful tool that harnesses the capabilities of OpenAI's state-of-the-art text-bison@001 large language model to provide summaries of the changes introduced by a pull request in a repository. By generating the git diff for each commit and for each modified file and sending it to the AI API with a carefully crafted prompt, the action is able to produce concise and informative summaries that can greatly enhance collaboration and understanding in large codebases.
 
-The action then performs a higher level call to the OpenAI API to generate a summary of the entire pull request, from the summaries of individual commits and file differences. This summary is then posted as a comment on the pull request.
+The action then performs a higher level call to the AI API to generate a summary of the entire pull request, from the summaries of individual commits and file differences. This summary is then posted as a comment on the pull request.
 
 # Getting Started
 
@@ -26,7 +28,7 @@ _Note: Requires that you have Node.js installed._
 
 ## Setting up
 
-To use this action, you will need to have an OpenAI API key. If you don't already have one, you can sign up for an OpenAI API key [here](https://beta.openai.com/docs/quickstart).
+To use this action, you will need to have an AI API key. If you don't already have one, you can sign up for an AI API key [here](https://beta.openai.com/docs/quickstart).
 
 Once you have your API key, you will need to add it to your GitHub repository as a secret. To do this, go to your repository's settings and navigate to the "Secrets" section. Click on "Add a new secret" and enter the secret name OPENAI_API_KEY and the value of your API key.
 
@@ -43,7 +45,7 @@ on:
 jobs:
   summarize:
     runs-on: ubuntu-latest
-    permissions: write-all  # Some repositories need this line
+    permissions: write-all # Some repositories need this line
 
     steps:
       - uses: KanHarI/gpt-commit-summarizer@master
@@ -58,15 +60,15 @@ That's it! You're now ready to use the gpt-commit-summarizer action in your repo
 
 ## Troubleshooting
 
-I have heard some unverified reports that the OpenAI API may block requests from the IP addresses of some runners. If you encounter this issue, you can try using a self-hosted runner to run the gpt-commit-summarizer action. This can be done by setting up a runner on a server that you control, and then adding the runner to your repository.
+I have heard some unverified reports that the AI API may block requests from the IP addresses of some runners. If you encounter this issue, you can try using a self-hosted runner to run the gpt-commit-summarizer action. This can be done by setting up a runner on a server that you control, and then adding the runner to your repository.
 
 To set up a self-hosted runner, you will need to follow these steps:
 
-* Install the GitHub Actions Runner on your server. Follow the instructions in the [documentation](https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners) to do this.
+- Install the GitHub Actions Runner on your server. Follow the instructions in the [documentation](https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners) to do this.
 
-* Add the self-hosted runner to your repository. Follow the instructions in the documentation to do this.
+- Add the self-hosted runner to your repository. Follow the instructions in the documentation to do this.
 
-* Modify the workflow file to use the self-hosted runner. Open the .github/workflows/gpt-commit-summarizer.yml file and add the `runs-on` field to specify the self-hosted runner that you want to use. For example:
+- Modify the workflow file to use the self-hosted runner. Open the .github/workflows/gpt-commit-summarizer.yml file and add the `runs-on` field to specify the self-hosted runner that you want to use. For example:
 
 ```yaml
 name: GPT Commits summarizer
@@ -79,7 +81,7 @@ on:
 jobs:
   summarize:
     runs-on: self-hosted
-    permissions: write-all  # Some repositories need this line
+    permissions: write-all # Some repositories need this line
 
     steps:
       - uses: KanHarI/gpt-commit-summarizer@master
