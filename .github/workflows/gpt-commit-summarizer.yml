@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: mikhailv-teamboosterai/gpt-commit-summarizer@master
+      - uses: mikhailv-teamboosterai/gpt-commit-summarizer@update
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
