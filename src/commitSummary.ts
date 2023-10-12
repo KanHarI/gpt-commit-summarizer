@@ -210,15 +210,15 @@ export async function summarizeCommits(
     // Create a comment on the pull request with the names of the files that were modified in the commit
     const comment = `GPT summary of ${commit.sha}:\n\n${completion}`;
 
-    if (commit.sha !== headCommit) {
-      await octokit.issues.createComment({
-        owner: repository.owner.login,
-        repo: repository.name,
-        issue_number: pullNumber,
-        body: comment,
-        commit_id: commit.sha,
-      });
-    }
+    // if (commit.sha !== headCommit) {
+    //   await octokit.issues.createComment({
+    //     owner: repository.owner.login,
+    //     repo: repository.name,
+    //     issue_number: pullNumber,
+    //     body: comment,
+    //     commit_id: commit.sha,
+    //   });
+    // }
     commitsSummarized++;
     if (commitsSummarized >= MAX_COMMITS_TO_SUMMARIZE) {
       console.log(
@@ -238,12 +238,11 @@ export async function summarizeCommits(
       console.error(error);
     }
     const comment = `GPT summary of ${headCommit}:\n\n${headCommitShaAndSummary[1]}\n\nPR summary so far:\n\n${prSummary}`;
-    await octokit.issues.createComment({
+    await octokit.pulls.update({
       owner: repository.owner.login,
       repo: repository.name,
-      issue_number: pullNumber,
-      body: comment,
-      commit_id: headCommit,
+      pull_number: pullNumber,
+      body: pull.data.body + comment,
     });
   }
   return commitSummaries;
