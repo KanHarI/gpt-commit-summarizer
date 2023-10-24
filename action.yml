@@ -9,9 +9,17 @@ inputs:
     description: 'The GitHub token to use for authenticating the action'
     required: true
     default: ''
+  openai_model:
+    description: "The used for summarization, full list here: https://platform.openai.com/docs/models/overview"
+    required: false
+    default: "gpt-3.5-turbo"
+  ignore_files:
+    description: "A list of glob pattens to ignore when summarizing, separated by commas, e.g. *.lock,*.lock.json"
+    required: false
+    default: "*.lock,*lock.json,*lock.yaml,*lock.yml"
 branding:
     icon: 'aperture'
     color: 'purple'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'lib/index.js'

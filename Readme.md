@@ -50,6 +50,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          # Optional: Set the OpenAI model to use. chat models only. 
+          # Default: "gpt-3.5-turbo".
+          openai_model: "gpt-3.5-turbo-16k"
+          # Optional: Add glob patterns to exclude from the summary. 
+          # Default: "*.lock,*lock.json,*lock.yaml,*lock.yml".
+          ignore_files: "*.lock,*lock.json"
 ```
 
 This workflow file tells GitHub to run the action whenever a new pull request is opened or updated.
@@ -86,6 +93,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        with:
+          # Optional: Set the OpenAI model to use. chat models only. 
+          # Default: "gpt-3.5-turbo".
+          openai_model: "gpt-3.5-turbo-16k"
+          # Optional: Add glob patterns to exclude from the summary. 
+          # Default: "*.lock,*lock.json,*lock.yaml,*lock.yml".
+          ignore_files: "*.lock,*lock.json"          
 ```
 
 ## Encountered any bugs?
