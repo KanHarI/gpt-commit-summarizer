@@ -4,7 +4,7 @@ name: GPT Commits summarizer
 
 on:
   pull_request:
-    types: [ opened, synchronize ]
+    types: [opened, synchronize]
 
 jobs:
   summarize:

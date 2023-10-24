@@ -25,6 +25,7 @@ Comments should be in a bullet point list, each line starting with a \`*\`.
 The summary should only include non-obvious changes.
 The summary should not include comments copied from the code.
 The summary should not include comments about the code style, formatting and linting.
+The summary must ignore whitespace changes.
 The output should be easily readable. When in doubt, write less comments and not more.
 Readability is top priority. Write only the most important comments about the diff.
 
