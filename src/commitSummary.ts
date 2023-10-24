@@ -22,22 +22,35 @@ Do not include the file name as another part of the comment, only in the end in 
 Do not use the characters \`[\` or \`]\` in the summary for other purposes.
 Write every summary comment in a new line.
 Comments should be in a bullet point list, each line starting with a \`*\`.
+The summary should only include non-obvious changes.
 The summary should not include comments copied from the code.
+The summary should not include comments about the code style, formatting and linting.
 The output should be easily readable. When in doubt, write less comments and not more.
 Readability is top priority. Write only the most important comments about the diff.
 
-EXAMPLE SUMMARY COMMENTS:
+EXAMPLES OF SUMMARY COMMENTS:
+
+Example 1:
 \`\`\`
 * Raised the amount of returned recordings from \`10\` to \`100\` [packages/server/recordings_api.ts], [packages/server/constants.ts]
 * Fixed a typo in the github action name [.github/workflows/gpt-commit-summarizer.yml]
+\`\`\`
+
+Example 2:
+\`\`\`
+* Added XLSX export support [packages/server/exports/xlsx.ts]
+\`\`\`
+
+Example 3:
+\`\`\`
 * Moved the \`octokit\` initialization to a separate file [src/octokit.ts], [src/index.ts]
 * Added an OpenAI API for completions [packages/utils/apis/openai.ts]
 * Lowered numeric tolerance for test files
 \`\`\`
-Most commits will have less comments than this examples list.
-The last comment does not include the file names,
-because there were more than two relevant files in the hypothetical commit.
-Do not include parts of the example in your summary.
+
+Most commits will have between 1-3 comments.
+The last comment does not include the file names because there were more than two relevant files in the hypothetical commit.
+Do not include parts of the examples in your summary.
 It is given only as an example of appropriate comments.
 `;
 
