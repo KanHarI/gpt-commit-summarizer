@@ -48,7 +48,7 @@ Example 3:
 * Lowered numeric tolerance for test files
 \`\`\`
 
-Most commits will have between 1-3 comments.
+Only comment about the most important changes.
 The last comment does not include the file names because there were more than two relevant files in the hypothetical commit.
 Do not include parts of the examples in your summary.
 It is given only as an example of appropriate comments.
