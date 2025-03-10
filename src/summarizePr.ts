@@ -48,15 +48,19 @@ export async function summarizePr(
   }
 
   try {
-    const response = await openai.createCompletion({
+    const response = await openai.chat.completions.create({
       model: MODEL_NAME,
-      prompt: openAIPrompt,
+      messages: [
+        { role: 'user', content: openAIPrompt }
+      ],
       max_tokens: MAX_TOKENS,
       temperature: TEMPERATURE,
     });
-    return response.data.choices[0].text ?? "Error: couldn't generate summary";
+    
+    return response.choices[0].message?.content ?? "Error: couldn't generate summary";
   } catch (error) {
     console.error(error);
     return "Error: couldn't generate summary";
   }
+  
 }
